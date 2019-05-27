@@ -224,10 +224,20 @@ void SpectrumChart::addSpectrum(const SpectrumPenStruct &specPenStruct, bool res
                 break;
             case 2:
                 valX = 1.239842 / (startSpec + (channel * step));//nm
+                if(valX < 0)
+                {
+                    channel++;
+                    continue;
+                }
                 break;
             case 3:
                valX = 12.39842 / (startSpec + (channel * step));//A
-                break;
+               if(valX < 0)
+               {
+                   channel++;
+                   continue;
+               }
+               break;
         }
         if(firstXValue)
         {
@@ -254,7 +264,6 @@ void SpectrumChart::addSpectrum(const SpectrumPenStruct &specPenStruct, bool res
         {
             valY = 0.00001;
         }
-
         series->append(valX, valY);
         channel++;
     }
@@ -326,6 +335,7 @@ void SpectrumChart::wheelEvent(QGraphicsSceneWheelEvent* event)
 
 void SpectrumChart::controlAxisLimits(double maxIntensity, double minValX, double maxValX, bool resizeAxis)
 {
+    resizeAxis = true;
     switch (yMode)
     {
         case 0:
@@ -402,6 +412,7 @@ void SpectrumChart::controlAxisLimits(double maxIntensity, double minValX, doubl
                 {
                     axisSpecX->setMin(minValX);
                 }
+                break;
         }
     }
 
@@ -453,6 +464,7 @@ void SpectrumChart::controlAxisLimits(double maxIntensity, double minValX, doubl
                 {
                     axisSpecX->setMax(maxValX);
                 }
+                break;
         }
     }
     return;

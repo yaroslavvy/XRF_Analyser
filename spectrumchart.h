@@ -9,6 +9,7 @@
 #include <QLineSeries>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneWheelEvent>
+#include <QAbstractSeries>
 #include "spectrumpenstruct.h"
 #include "spectrumlistmodel.h"
 
