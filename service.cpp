@@ -1,33 +1,26 @@
 #include "service.h"
 
 Service::Service(QObject *parent)
-    : QObject(parent)
-{
-
+    : QObject(parent) {
 }
 
-bool Service::isValidIntFromStr(const std::string &possibleInteger)
-{
+bool Service::isValidIntFromStr(const std::string &possibleInteger) {
     return possibleInteger.find_first_not_of("-+0123456789") == std::string::npos;
 }
 
-bool Service::isValidDoubleFromStr(const std::string &possibleDouble)
-{
+bool Service::isValidDoubleFromStr(const std::string &possibleDouble) {
     return possibleDouble.find_first_not_of("-+0123456789.") == std::string::npos;
 }
 
-const std::string Service::commaToDot (const std::string &string)
-{
+const std::string Service::commaToDot (const std::string &string) {
     std::string tmp(string);
     std::replace(tmp.begin(), tmp.end(), ',', '.');
     return tmp;
 }
 
-const QPen Service::getPenForSpec (int orderNumberLoadedSpectrum)
-{
+const QPen Service::getPenForSpec (int orderNumberLoadedSpectrum) {
     int defaultWidth = 2;
-    switch (orderNumberLoadedSpectrum % 21)
-    {
+    switch (orderNumberLoadedSpectrum % 21) {
         case 0:
             return QPen(QBrush(QColor(255, 0, 0)), defaultWidth);
         case 1:

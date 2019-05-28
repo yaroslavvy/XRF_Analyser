@@ -5,17 +5,14 @@
 #include <QTabWidget>
 #include "workareaview.h"
 
-class TabSpecWindow : public QTabWidget
-{
+class TabSpecWindow : public QTabWidget {
     Q_OBJECT
 public:
-    TabSpecWindow(QWidget* pwgt = nullptr);
-
+    TabSpecWindow(QWidget* parent = nullptr);
 public slots:
     void slotSetXModeView(int);
     void slotSetYModeView(int);
     void slotCurrentChanged(int);
-
 signals:
     void modeXChanged(int);
     void modeYChanged(int);

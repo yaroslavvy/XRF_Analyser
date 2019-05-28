@@ -14,8 +14,8 @@ class SpectrumSPM : public QObject
 {
     Q_OBJECT
 public:
-    SpectrumSPM(QObject *pobj = nullptr);
-    SpectrumSPM(const SpectrumSPM&, QObject *pwgt = nullptr);
+    SpectrumSPM(QObject *parent = nullptr);
+    SpectrumSPM(const SpectrumSPM&, QObject *parent = nullptr);
 
     const SpectrumSPM& operator= (const SpectrumSPM&);
 

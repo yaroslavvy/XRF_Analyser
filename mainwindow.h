@@ -14,21 +14,16 @@
 #include "singlewindow.h"
 #include "barclock.h"
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
-
 public:
-    explicit MainWindow(QWidget *pwgt = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
 private:
     QMdiArea* m_pma;
     QMenu* m_pmnuWindows;
     QSignalMapper* m_psigMapper;
-
     SingleWindow* createNewSingleWindow();
-
 private slots:
     void slotNewSingleWindow();
     void slotLoad();
@@ -38,7 +33,6 @@ private slots:
     void slotWindows();
     void slotAbout();
     void slotSetActiveSubWindow (QWidget*);
-
 };
 
 #endif // MAINWINDOW_H

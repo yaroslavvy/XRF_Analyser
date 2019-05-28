@@ -9,8 +9,7 @@
 #include <QPen>
 #include <QBrush>
 
-class Service : public QObject
-{
+class Service : public QObject {
     Q_OBJECT
 public:
     explicit Service(QObject *parent = nullptr);

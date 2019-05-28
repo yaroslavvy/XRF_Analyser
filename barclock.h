@@ -6,11 +6,10 @@
 #include <QTimer>
 #include <QDateTime>
 
-class BarClock : public QLabel
-{
+class BarClock : public QLabel {
     Q_OBJECT
 public:
-    BarClock(QWidget* pwgt = nullptr);
+    BarClock(QWidget* parent = nullptr);
 
 private slots:
     void slotUpdateDateTime();

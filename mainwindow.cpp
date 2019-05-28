@@ -1,8 +1,7 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(QWidget *pwgt)
-    : QMainWindow(pwgt)
-{
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent) {
     QString pathIconMenuDefaultStyle("resources/pictures/menuIcons/defaultStyle/");
     QAction* pactNew = new QAction("New Window", nullptr);
     pactNew->setText("&New Window");
@@ -35,13 +34,7 @@ MainWindow::MainWindow(QWidget *pwgt)
     ptbFile->addAction(pactNew);
     ptbFile->addAction(pactOpen);
     ptbFile->addAction(pactSave);
-    addToolBar(Qt::RightToolBarArea, ptbFile);
-
-    QToolBar* ptbFile2 = new QToolBar("File Operations3");
-    ptbFile2->addAction(pactNew);
-    ptbFile2->addAction(pactOpen);
-    ptbFile2->addAction(pactSave);
-    addToolBar(Qt::LeftToolBarArea, ptbFile2);
+    addToolBar(Qt::LeftToolBarArea, ptbFile);
 
     QMenu* pmnuFile = new QMenu("&File");
     pmnuFile->addAction(pactNew);
@@ -63,10 +56,9 @@ MainWindow::MainWindow(QWidget *pwgt)
     menuBar()->addMenu(pmnuHelp);
 
     m_pma = new QMdiArea;
+    setCentralWidget(m_pma);
     m_pma->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_pma->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-
-    setCentralWidget(m_pma);
 
     m_psigMapper = new QSignalMapper(this);
     connect(m_psigMapper, SIGNAL(mapped(QWidget*)), this, SLOT(slotSetActiveSubWindow(QWidget*)));
@@ -81,22 +73,16 @@ MainWindow::MainWindow(QWidget *pwgt)
     statusBar()->showMessage("Ready...", 3000);
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
 }
 
-SingleWindow* MainWindow::createNewSingleWindow()
-{
+SingleWindow* MainWindow::createNewSingleWindow() {
     SingleWindow* pSW = new SingleWindow;
     m_pma->addSubWindow(pSW);
-   // m_pma->setActiveSubWindow(qobject_cast<QMdiSubWindow*>(pSW));
-    pSW->setAttribute(Qt::WA_DeleteOnClose);
-    pSW->setWindowTitle("Unknown spectrum");
     return pSW;
 }
 
-void MainWindow::slotNewSingleWindow()
-{
+void MainWindow::slotNewSingleWindow() {
     createNewSingleWindow()->show();
     m_pma->cascadeSubWindows();
     statusBar()->showMessage("New Window...", 3000);
@@ -104,35 +90,29 @@ void MainWindow::slotNewSingleWindow()
 
 void MainWindow::slotLoad()
 {
-    if(m_pma->activeSubWindow() == nullptr)
-    {
-        SingleWindow* pSWindow = createNewSingleWindow();
-        pSWindow->slotLoad();
-        pSWindow->showMaximized();
+    if(m_pma->activeSubWindow() == nullptr) {
+        SingleWindow* pSW = createNewSingleWindow();
+        pSW->slotLoad();
+        pSW->showMaximized();
         statusBar()->showMessage("File Open...", 3000);
         return;
     }
-    else
-    {
+    else {
         qobject_cast<SingleWindow*>(m_pma->activeSubWindow()->widget())->slotLoad();
     }
     statusBar()->showMessage("File Open...", 3000);
 }
 
-void MainWindow::slotSave()
-{
+void MainWindow::slotSave() {
 }
 
-void MainWindow::slotSaveAs()
-{
+void MainWindow::slotSaveAs() {
 }
 
-void MainWindow::slotSaveAll()
-{
+void MainWindow::slotSaveAll() {
 }
 
-void MainWindow::slotWindows()
-{
+void MainWindow::slotWindows() {
     m_pmnuWindows->clear();
 
     QAction* pact = m_pmnuWindows->addAction("&Cascade", m_pma, SLOT(cascadeSubWindows()));
@@ -144,8 +124,7 @@ void MainWindow::slotWindows()
     m_pmnuWindows->addSeparator();
 
     QList<QMdiSubWindow*> listSubWindows = m_pma->subWindowList();
-    for (int i = 0; i < listSubWindows.size(); ++i)
-    {
+    for (int i = 0; i < listSubWindows.size(); ++i) {
         pact = m_pmnuWindows->addAction(listSubWindows.at(i)->windowTitle());
         pact->setCheckable(true);
         pact->setChecked(m_pma->activeSubWindow() == listSubWindows.at(i));
@@ -154,12 +133,11 @@ void MainWindow::slotWindows()
     }
 }
 
-void MainWindow::slotAbout()
-{
+void MainWindow::slotAbout() {
 }
 
-void MainWindow::slotSetActiveSubWindow (QWidget* pwgt)
-{
-    if(pwgt)
+void MainWindow::slotSetActiveSubWindow (QWidget* pwgt) {
+    if(pwgt) {
         m_pma->setActiveSubWindow(qobject_cast<QMdiSubWindow*>(pwgt));
+    }
 }

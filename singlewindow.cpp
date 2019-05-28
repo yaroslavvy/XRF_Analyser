@@ -1,8 +1,7 @@
 #include "singlewindow.h"
 
 SingleWindow::SingleWindow(QWidget *pwgt)
-    : QWidget(pwgt)
-{
+    : QWidget(pwgt) {
     QSplitter* hSpl = new QSplitter(Qt::Horizontal);
     QSplitter* vSpl1 = new QSplitter(Qt::Vertical);
     QSplitter* vSpl2 = new QSplitter(Qt::Vertical);
@@ -32,15 +31,13 @@ SingleWindow::SingleWindow(QWidget *pwgt)
 
     slotAddTab();
 
-    QString pathIconMenuDefaultStyle("resources/pictures/menuIcons/defaultStyle/");
-
     QAction* pButtonAddTab = new QAction("Add Tab", nullptr);
     pButtonAddTab->setText("Add &Tab");
     pButtonAddTab->setShortcut(QKeySequence("CTRL+T"));
     pButtonAddTab->setToolTip("Add Tab");
     pButtonAddTab->setToolTip("Create a new tab at the window");
     pButtonAddTab->setWhatsThis("Create a new tab at the window");
-    pButtonAddTab->setIcon(QPixmap(pathIconMenuDefaultStyle + "addTab.png"));
+    pButtonAddTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/addTab.png"));
     connect(pButtonAddTab, SIGNAL(triggered()), this, SLOT(slotAddTab()));
 
     QAction* pButtonRemoveTab = new QAction("Remove Tab", nullptr);
@@ -49,7 +46,7 @@ SingleWindow::SingleWindow(QWidget *pwgt)
     pButtonRemoveTab->setToolTip("Remove Tab");
     pButtonRemoveTab->setToolTip("Remove active tab from the window");
     pButtonRemoveTab->setWhatsThis("Remove active tab from the window");
-    pButtonRemoveTab->setIcon(QPixmap(pathIconMenuDefaultStyle + "removeTab.png"));
+    pButtonRemoveTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/removeTab.png"));
     connect(pButtonRemoveTab, SIGNAL(triggered()), this, SLOT(slotRemoveTab()));
 
     QToolBar* ptbTab = new QToolBar("File Operations");
@@ -92,29 +89,23 @@ SingleWindow::SingleWindow(QWidget *pwgt)
     phbLayout->addWidget(hSpl);
     setLayout(phbLayout);
 
-    //pTab->resize(QApplication::desktop()->width() * 0.7, QApplication::desktop()->height() * 0.6);
-    //messageWindow->resize(QApplication::desktop()->width() * 0.7, 10);
-    //lstViewSpectrums->resize(QApplication::desktop()->width() * 0.05, QApplication::desktop()->height() * 0.4);
-    //lstViewGates->resize(QApplication::desktop()->width() * 0.05, QApplication::desktop()->height() * 0.2);
+    setAttribute(Qt::WA_DeleteOnClose);
+    setWindowTitle("Unknown spectrum");
 }
 
 void SingleWindow::slotLoad()
 {    
     QString str = QFileDialog::getOpenFileName(nullptr, "Open File", "resources/spectrums/", "*.spm");
-    if(str.isEmpty())
-    {
+    if(str.isEmpty()) {
         return;
     }
 
     SpectrumSPM spm;
 
-    if(!spm.readFromFile(str))
-    {
+    if(!spm.readFromFile(str)) {
         QMessageBox::critical(nullptr, "Error!", "Error of the file reading! " + str, QMessageBox::Cancel);
         return;
     }
-
-    //changed();
 
     setWindowTitle(spm.getSpectrumName());
 
@@ -137,49 +128,39 @@ void SingleWindow::slotLoad()
     QVector<double> vecIntensities;
     vecIntensities = spm.getDataSpm();
     int channel = 0;
-    foreach(double val, vecIntensities){
+
+    foreach(double val, vecIntensities) {
         text += QString::number(val);
         (channel + 1) % 8 == 0 ? text += "\n" : text += " ";
         channel++;
     }
     messageWindow->append(text);
 
-    if(pTab->count() == 0)
-    {
+    if(pTab->count() == 0) {
         slotAddTab();
     }
     qobject_cast<SpectrumChart*>(qobject_cast<WorkAreaView*>(pTab->currentWidget())->chart())->getModelSpectrums()->addSpectrum(spm);
 }
 
-void SingleWindow::slotSave()
-{
-
+void SingleWindow::slotSave() {
 }
 
-void SingleWindow::slotSaveAs()
-{
-
+void SingleWindow::slotSaveAs() {
 }
 
-void SingleWindow::slotAddTab()
-{
+void SingleWindow::slotAddTab() {
     WorkAreaView* view = new WorkAreaView;
-
     SpectrumChart* chart = new SpectrumChart;
-
     SpectrumListModel* specModel = new SpectrumListModel(chart);
     chart->setModelSpectrums(specModel);
     lstViewSpectrums->setModel(specModel);
-
     view->setChart(chart);
-
     pTab->addTab(view, "New Tab");
+    pTab->setCurrentIndex(pTab->count() - 1);
 }
 
-void SingleWindow::slotRemoveTab()
-{
-    if(pTab->count() == 1)
-    {
+void SingleWindow::slotRemoveTab() {
+    if(pTab->count() == 1) {
         QMessageBox::information(nullptr, "Information", "Last Tab can not be closed. If you want to close this tab just close this subwindow.", QMessageBox::Ok);
         return;
     }

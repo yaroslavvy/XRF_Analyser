@@ -10,17 +10,18 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneWheelEvent>
 #include <QAbstractSeries>
+#include <QCursor>
 #include "spectrumpenstruct.h"
 #include "spectrumlistmodel.h"
 
-class SpectrumChart : public QtCharts::QChart
-{
+class SpectrumChart : public QtCharts::QChart {
     Q_OBJECT
 public:
-    SpectrumChart(QGraphicsItem* pGraphItem = nullptr);
-
+    SpectrumChart(QGraphicsItem* parent = nullptr);
     void addSpectrum(const SpectrumPenStruct&, bool resizeAxis = true);
     void setModelSpectrums(SpectrumListModel*);
+    void setFullSizeSpectrumArea();
+
     SpectrumListModel* getModelSpectrums();
 
     bool setXMode(int xMode);
@@ -32,9 +33,11 @@ public:
 public slots:
     void recoverAxisLimits();
     void slotUpdateSpectrums(bool);
+    void slotCursorMode(int);
+    void setAndRepaintMouseCursor(QPointF);
+
 
 protected:
-    virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
     virtual void wheelEvent(QGraphicsSceneWheelEvent* event);
 
 private:
@@ -45,10 +48,16 @@ private:
     int xMode;
     int yMode;
 
+    int modeCursor;
+    QPointF posMouse;
+
     double fullViewMinX;
     double fullViewMaxX;
     double fullViewMinY;
     double fullViewMaxY;
+
+    QtCharts::QLineSeries* verticalLineCursor;
+    QtCharts::QLineSeries* horizontalLineCursor;
 
     QtCharts::QValueAxis* axisSpecX;
 };

@@ -33,7 +33,6 @@ SOURCES += \
     service.cpp \
     barclock.cpp \
     workareaview.cpp \
-    charttest.cpp \
     spectrumchart.cpp \
     tabspecwindow.cpp \
     spectrumlistmodel.cpp
@@ -45,7 +44,6 @@ HEADERS += \
     service.h \
     barclock.h \
     workareaview.h \
-    charttest.h \
     spectrumchart.h \
     tabspecwindow.h \
     spectrumlistmodel.h \

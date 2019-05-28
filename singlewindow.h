@@ -29,12 +29,10 @@
 #include "service.h"
 
 
-class SingleWindow : public QWidget
-{
+class SingleWindow : public QWidget {
     Q_OBJECT
 public:
     explicit SingleWindow(QWidget *pwgt = nullptr);
-
 private:
     TabSpecWindow* pTab;
     QTextEdit* messageWindow;
@@ -42,7 +40,6 @@ private:
     QListView* lstViewGates;
     QComboBox* pCBmodeX;
     QComboBox* pCBmodeY;
-
 public slots:
     void slotLoad();
     void slotSave();
