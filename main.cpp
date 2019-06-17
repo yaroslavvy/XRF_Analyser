@@ -1,5 +1,6 @@
 #include <QSplashScreen>
-#include "mainwindow.h"
+#include <QApplication>
+#include "main_window.h"
 
 int main(int argc, char **argv)
 {
@@ -8,7 +9,7 @@ int main(int argc, char **argv)
     QSplashScreen splashScreen(QPixmap("resources/pictures/splashScreen/splashScreen.png"));
     splashScreen.show();
 
-    MainWindow mainWindow;
+    ui::MainWindow mainWindow;
     splashScreen.finish(&mainWindow);
     mainWindow.showMaximized();
 

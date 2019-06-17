@@ -27,27 +27,31 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp \
-    singlewindow.cpp \
-    spectrumspm.cpp \
     service.cpp \
-    barclock.cpp \
-    workareaview.cpp \
-    spectrumchart.cpp \
-    tabspecwindow.cpp \
-    spectrumlistmodel.cpp
+    bar_clock.cpp \
+    main_window.cpp \
+    single_window.cpp \
+    spectrum_chart.cpp \
+    spectrum_list_model.cpp \
+    spectrum_spm.cpp \
+    tab_spec_window.cpp \
+    work_area_view.cpp \
+    exception.cpp
 
 HEADERS += \
-        mainwindow.h \
-    singlewindow.h \
-    spectrumspm.h \
     service.h \
-    barclock.h \
-    workareaview.h \
-    spectrumchart.h \
-    tabspecwindow.h \
-    spectrumlistmodel.h \
-    spectrumpenstruct.h
+    bar_clock.h \
+    main_window.h \
+    single_window.h \
+    spectrum_chart.h \
+    spectrum_chart_axis_modes.h \
+    spectrum_list_model.h \
+    spectrum_pen_struct.h \
+    spectrum_spm.h \
+    tab_spec_window.h \
+    work_area_view.h \
+    spectrum_attribute_struct.h \
+    exception.h
 
 FORMS +=
 
