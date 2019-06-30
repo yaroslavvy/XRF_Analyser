@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "tab_spec_window.h"
+#include "spectrum_list_view.h"
 class QTextEdit;
 class QListView;
 class QComboBox;
@@ -18,7 +19,7 @@ namespace ui {
     private:
         ui::TabSpecWindow* m_tab;
         QTextEdit* m_messageWindow;
-        QListView* m_lstViewSpectrums;
+        ui::SpectrumListView* m_lstViewSpectrums;
         QListView* m_lstViewGates;
         QComboBox* m_cBoxModeX;
         QComboBox* m_cBoxModeY;

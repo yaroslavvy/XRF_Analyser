@@ -14,6 +14,8 @@ namespace ctrl {
     public:
         SpectrumListModel(QObject* parent = nullptr);
         void addSpectrum(const SpectrumSPM& newSpectrum);
+        void setDefaultViewSpectrums();
+        void setActivatedSpectrum(const QModelIndex& index);
         QVariant data (const QModelIndex& index, int nRole = Qt::DisplayRole) const override;
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         bool setData(const QModelIndex& index, const QVariant& value, int nRole) override;
@@ -24,6 +26,10 @@ namespace ctrl {
     private:
         QList<SpectrumPenStruct> m_specList;
         int m_orderNumberLoadedSpectrum;
+        QModelIndex m_activatedSpectrumIndex;
+
+        const int DEFAULT_WIDTH_OF_LINE_SPECTRUM_ON_THE_CHART = 1;
+        const int WIDTH_OF_LINE_ACTIVATED_SPECTRUM_ON_THE_CHART = 2;
     };
 }
 

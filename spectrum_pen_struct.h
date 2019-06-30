@@ -3,12 +3,14 @@
 
 #include "spectrum_spm.h"
 #include <QPen>
+#include <QColor>
 
 namespace ctrl {
     struct SpectrumPenStruct
     {
         SpectrumSPM spm;
-        QPen pen;
+        QPen penForChart;
+        QColor textColorForView;
     };
 }
 

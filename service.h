@@ -7,7 +7,7 @@ class QPen;
 
 namespace srvcSpec {
     const std::string commaToDot (std::string str);
-    const QPen getPenForSpec (int orderNumberLoadedSpectrum);
+    const QPen getPenForSpec (int orderNumberLoadedSpectrum, int penWidth);
 }
 
 #endif // QUALITATIVE_ANALYSIS_SERVICE_H

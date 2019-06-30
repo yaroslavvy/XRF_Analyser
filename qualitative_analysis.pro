@@ -36,7 +36,8 @@ SOURCES += \
     spectrum_spm.cpp \
     tab_spec_window.cpp \
     work_area_view.cpp \
-    exception.cpp
+    exception.cpp \
+    spectrum_list_view.cpp
 
 HEADERS += \
     service.h \
@@ -51,7 +52,8 @@ HEADERS += \
     tab_spec_window.h \
     work_area_view.h \
     spectrum_attribute_struct.h \
-    exception.h
+    exception.h \
+    spectrum_list_view.h
 
 FORMS +=
 

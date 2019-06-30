@@ -53,7 +53,10 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     connect(m_cBoxModeY, SIGNAL(activated(int)), m_tab, SLOT(slotSetYModeView(int)));
     connect(m_tab, SIGNAL(modeYChanged(int)), m_cBoxModeY, SLOT(setCurrentIndex(int)));
 
-    m_lstViewSpectrums = new QListView;
+    m_lstViewSpectrums = new ui::SpectrumListView;
+    m_lstViewSpectrums->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    m_lstViewSpectrums->setEditTriggers(QAbstractItemView::SelectedClicked);
+
     m_lstViewGates = new QListView;
 
     slotAddTab();

@@ -7,6 +7,7 @@
 #include <QAbstractSeries>
 #include <QTranslator>
 #include <QCursor>
+#include <QItemSelectionModel>
 
 ui::SpectrumChart::SpectrumChart(QGraphicsItem* parent)
     : QtCharts::QChart(parent),
@@ -193,7 +194,7 @@ void ui::SpectrumChart::setAndRepaintMouseCursor(const QPointF &newMousePos){
 void ui::SpectrumChart::addSpectrum(const ctrl::SpectrumPenStruct &specPenStruct, bool resizeAxis)
 {
     QtCharts::QLineSeries* series = new QtCharts::QLineSeries;
-    series->setPen(specPenStruct.pen);
+    series->setPen(specPenStruct.penForChart);
 
     int channel = 0;
     double startSpec = specPenStruct.spm.getSpectrumAttributes().energyStartSpectrum_kev;

@@ -10,8 +10,7 @@ const std::string srvcSpec::commaToDot (std::string str) {
     return str;
 }
 
-const QPen srvcSpec::getPenForSpec (int orderNumberLoadedSpectrum) {
-    const int defaultWidth = 2;
+const QPen srvcSpec::getPenForSpec(int orderNumberLoadedSpectrum, int penWidth) {
     int color = orderNumberLoadedSpectrum % 21;
     const int penColors[21][3] = {
         {255, 0, 0},
@@ -36,6 +35,6 @@ const QPen srvcSpec::getPenForSpec (int orderNumberLoadedSpectrum) {
         {128, 0, 255},
         {128, 128, 255}
     };
-    return QPen(QBrush(QColor(penColors[color][0], penColors[color][1], penColors[color][2])), defaultWidth);
+    return QPen(QBrush(QColor(penColors[color][0], penColors[color][1], penColors[color][2])), penWidth);
 }
 
