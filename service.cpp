@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QPen>
 #include <QBrush>
+#include <QWidget>
 
 const std::string srvcSpec::commaToDot (std::string str) {
     std::replace(str.begin(), str.end(), ',', '.');
@@ -36,5 +37,18 @@ const QPen srvcSpec::getPenForSpec(int orderNumberLoadedSpectrum, int penWidth) 
         {128, 128, 255}
     };
     return QPen(QBrush(QColor(penColors[color][0], penColors[color][1], penColors[color][2])), penWidth);
+}
+
+QList<QWidget*> srvcSpec::findParentWidgets(const QWidget* widget) {
+    QList<QWidget*> widgetList;
+    if (widget == nullptr){
+        return widgetList;
+    }
+    widgetList.push_back(widget->parentWidget());
+    while (widgetList.last() != nullptr) {
+        widgetList.push_back(widgetList.last()->parentWidget());
+    }
+    widgetList.pop_back();
+    return widgetList;
 }
 

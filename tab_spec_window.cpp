@@ -1,8 +1,27 @@
 #include "tab_spec_window.h"
+#include "spectrum_list_mime_data.h"
+#include "spectrum_list_view.h"
+#include "spectrum_list_model.h"
+#include "tab_bar_spec_window.h"
+#include <QDebug>
+#include <QPaintEvent>
 
 ui::TabSpecWindow::TabSpecWindow(QWidget* parent)
-    :QTabWidget(parent) {
+    :QTabWidget(parent)
+{
+    ui::TabBarSpecWindow* tabBarSpecWindow = new ui::TabBarSpecWindow(this);
+    setTabBar(tabBarSpecWindow);
+    setTabShape(TabSpecWindow::Triangular);
+    setTabBarAutoHide(true);
+
+    setAcceptDrops(true);
+
+    setDocumentMode(true);
+    setMovable(true);
+    setUsesScrollButtons(true);
+
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(slotCurrentChanged()));
+
 }
 
 void ui::TabSpecWindow::slotSetXModeView(int mode) const {

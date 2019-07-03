@@ -1,6 +1,12 @@
-#include "work_area_view.h"
 #include <QWidget>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
 #include <QGraphicsScene>
+#include <QDebug>
+#include "work_area_view.h"
+#include "spectrum_list_mime_data.h"
+#include "spectrum_list_view.h"
 
 ui::WorkAreaView::WorkAreaView(QWidget* parent)
     : QtCharts::QChartView (parent) {
@@ -31,4 +37,42 @@ void ui::WorkAreaView::mouseMoveEvent(QMouseEvent *event){
 void ui::WorkAreaView::mouseDoubleClickEvent(QMouseEvent* event){
     getSpectrumChart()->setFullSizeSpectrumArea();
     QtCharts::QChartView::mouseDoubleClickEvent(event);
+}
+
+void ui::WorkAreaView::mousePressEvent(QMouseEvent *event) {
+    QtCharts::QChartView::mousePressEvent(event);
+}
+
+void ui::WorkAreaView::dragEnterEvent (QDragEnterEvent *event) {
+    if(event->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType())){
+        event->acceptProposedAction();
+    }
+}
+
+void ui::WorkAreaView::dragMoveEvent (QDragMoveEvent *event) {
+    event->acceptProposedAction();
+}
+
+void ui::WorkAreaView::dropEvent (QDropEvent *event) {
+    const ctrl::SpectrumListModel* sourceSpectrumListModel = qobject_cast<const ctrl::SpectrumListModel*>(ui::SpectrumListView::getSourceSpectrumListModel());
+    ctrl::SpectrumListModel* thisSpectrumListModel = qobject_cast<ctrl::SpectrumListModel*>(getSpectrumChart()->getModelSpectrums());
+    if (sourceSpectrumListModel == thisSpectrumListModel) {
+        return;
+    }
+
+    if (event->proposedAction() == Qt::MoveAction) {
+            event->acceptProposedAction();
+    } else if (event->proposedAction() == Qt::CopyAction) {
+        event->acceptProposedAction();
+    } else {
+        return;
+    }
+
+    const ctrl::SpectrumListMimeData* spectrumListMimeData = dynamic_cast<const ctrl::SpectrumListMimeData*>(event->mimeData());
+    if(spectrumListMimeData){
+        QList<ctrl::SpectrumSPM> spectrumList(spectrumListMimeData->getSpectrumList());
+        for(auto &spectrum : spectrumList){
+            thisSpectrumListModel->addSpectrum(spectrum);
+        }
+    }
 }

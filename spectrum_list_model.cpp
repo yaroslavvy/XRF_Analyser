@@ -26,9 +26,7 @@ void ctrl::SpectrumListModel::addSpectrum(const SpectrumSPM& newSpectrum) {
     spectrumPenStruct.spm = newSpectrum;
     m_specList.push_back(spectrumPenStruct);
     emit dataChanged(QModelIndex(), QModelIndex());
-    if(!m_specList.isEmpty()){
-        m_activatedSpectrumIndex = index(m_specList.size() - 1);
-    }
+    m_activatedSpectrumIndex = index(m_specList.size() - 1);
     emit updateSpectrums(true);
 }
 

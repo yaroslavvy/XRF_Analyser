@@ -11,10 +11,12 @@ namespace ui {
     public:
         TabSpecWindow(QWidget* parent = nullptr);
         ui::WorkAreaView* getCurrentWorkAreaView() const;
+
     public slots:
         void slotSetXModeView(int mode) const;
         void slotSetYModeView(int mode) const;
         void slotCurrentChanged();
+
     signals:
         void modeXChanged(int mode);
         void modeYChanged(int mode);

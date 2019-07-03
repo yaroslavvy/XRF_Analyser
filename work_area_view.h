@@ -16,8 +16,13 @@ namespace ui {
         ui::SpectrumChart* getSpectrumChart() const;
 
     protected:
-        virtual void mouseMoveEvent(QMouseEvent* event) override;
-        virtual void mouseDoubleClickEvent(QMouseEvent* event)override;
+        void mouseMoveEvent(QMouseEvent* event) override;
+        void mouseDoubleClickEvent(QMouseEvent* event)override;
+        void mousePressEvent(QMouseEvent *event) override;
+
+        void dragEnterEvent (QDragEnterEvent *event) override;
+        void dragMoveEvent (QDragMoveEvent *event) override;
+        void dropEvent (QDropEvent *event) override;
     };
 }
 
