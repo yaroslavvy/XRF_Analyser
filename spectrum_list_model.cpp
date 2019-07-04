@@ -1,4 +1,5 @@
 #include "spectrum_list_model.h"
+#include <QFont>
 
 ctrl::SpectrumListModel::SpectrumListModel(QObject* parent)
     : QAbstractListModel (parent),
@@ -14,13 +15,13 @@ void ctrl::SpectrumListModel::addSpectrum(const SpectrumSPM& newSpectrum) {
         SpectrumPenStruct previousActivatedSpectrumPenStruct;
         previousActivatedSpectrumPenStruct = m_specList.at(m_activatedSpectrumIndex.row());
         previousActivatedSpectrumPenStruct.penForChart.setWidth(DEFAULT_WIDTH_OF_LINE_SPECTRUM_ON_THE_CHART);
-        previousActivatedSpectrumPenStruct.textColorForView = Qt::black;
+        previousActivatedSpectrumPenStruct.textFontForView.setBold(false);
         m_specList.replace(m_activatedSpectrumIndex.row(), previousActivatedSpectrumPenStruct);
     }
 
     SpectrumPenStruct spectrumPenStruct;
     spectrumPenStruct.penForChart = srvcSpec::getPenForSpec(m_orderNumberLoadedSpectrum++, DEFAULT_WIDTH_OF_LINE_SPECTRUM_ON_THE_CHART);
-    spectrumPenStruct.textColorForView = Qt::red;
+    spectrumPenStruct.textFontForView.setBold(true);
     spectrumPenStruct.penForChart.setWidth(WIDTH_OF_LINE_ACTIVATED_SPECTRUM_ON_THE_CHART);
 
     spectrumPenStruct.spm = newSpectrum;
@@ -37,19 +38,41 @@ void ctrl::SpectrumListModel::setActivatedSpectrum(const QModelIndex& index){
     SpectrumPenStruct previousActivatedSpectrumPenStruct;
     previousActivatedSpectrumPenStruct = m_specList.at(m_activatedSpectrumIndex.row());
     previousActivatedSpectrumPenStruct.penForChart.setWidth(DEFAULT_WIDTH_OF_LINE_SPECTRUM_ON_THE_CHART);
-    previousActivatedSpectrumPenStruct.textColorForView = Qt::black;
+    previousActivatedSpectrumPenStruct.textFontForView.setBold(false);
     m_specList.replace(m_activatedSpectrumIndex.row(), previousActivatedSpectrumPenStruct);
 
     SpectrumPenStruct activatedSpectrumPenStruct;
     activatedSpectrumPenStruct = m_specList.at(index.row());
     activatedSpectrumPenStruct.penForChart.setWidth(WIDTH_OF_LINE_ACTIVATED_SPECTRUM_ON_THE_CHART);
-    activatedSpectrumPenStruct.textColorForView = Qt::red;
+    activatedSpectrumPenStruct.textFontForView.setBold(true);
     m_specList.replace(index.row(), activatedSpectrumPenStruct);
 
     emit dataChanged(m_activatedSpectrumIndex, m_activatedSpectrumIndex);
     emit dataChanged(index, index);
     emit updateSpectrums(false);
     m_activatedSpectrumIndex = index;
+}
+
+void ctrl::SpectrumListModel::changeVisibilitySpectrum(const QModelIndex& index) {
+    if(!index.isValid()) {
+        return;
+    }
+    if(!m_specList.at(index.row()).visible){
+        SpectrumPenStruct shownSpectrumPenStruct;
+        shownSpectrumPenStruct = m_specList.at(index.row());
+        shownSpectrumPenStruct.textFontForView.setStrikeOut(false);
+        shownSpectrumPenStruct.visible = true;
+        m_specList.replace(index.row(), shownSpectrumPenStruct);
+    }
+    else {
+        SpectrumPenStruct hiddenSpectrumPenStruct;
+        hiddenSpectrumPenStruct = m_specList.at(index.row());
+        hiddenSpectrumPenStruct.textFontForView.setStrikeOut(true);
+        hiddenSpectrumPenStruct.visible = false;
+        m_specList.replace(index.row(), hiddenSpectrumPenStruct);
+    }
+    emit dataChanged(index, index);
+    emit updateSpectrums(false);
 }
 
 QVariant ctrl::SpectrumListModel::data (const QModelIndex& index, int nRole) const {
@@ -61,8 +84,10 @@ QVariant ctrl::SpectrumListModel::data (const QModelIndex& index, int nRole) con
             return QVariant(m_specList.at(index.row()).spm.getSpectrumAttributes().spectrumName);
         case (Qt::EditRole):
             return QVariant(m_specList.at(index.row()).spm.getSpectrumAttributes().spectrumName);
-        case (Qt::TextColorRole):
-            return QVariant(m_specList.at(index.row()).textColorForView);
+        case (Qt::FontRole):
+            return QVariant(m_specList.at(index.row()).textFontForView);
+        case (Qt::DecorationRole):
+            return QVariant(m_specList.at(index.row()).penForChart.color());
         default:
             return QVariant();
     }
@@ -84,9 +109,17 @@ bool ctrl::SpectrumListModel::setData(const QModelIndex& index, const QVariant& 
         emit updateSpectrums(false);
         return true;
     }
-    if(nRole == Qt::TextColorRole){
+    if(nRole == Qt::FontRole){
         SpectrumPenStruct tmpStructPenStruct = m_specList.at(index.row());
-        tmpStructPenStruct.textColorForView = value.value<QColor>();
+        tmpStructPenStruct.textFontForView = value.value<QFont>();
+        m_specList.replace(index.row(), tmpStructPenStruct);
+        emit dataChanged(index, index);
+        emit updateSpectrums(false);
+        return true;
+    }
+    if(nRole == Qt::DecorationRole){
+        SpectrumPenStruct tmpStructPenStruct = m_specList.at(index.row());
+        tmpStructPenStruct.penForChart.color() = value.value<QColor>();
         m_specList.replace(index.row(), tmpStructPenStruct);
         emit dataChanged(index, index);
         emit updateSpectrums(false);

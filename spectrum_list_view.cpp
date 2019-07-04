@@ -2,12 +2,12 @@
 #include <QMouseEvent>
 #include <QStyledItemDelegate>
 #include <QDebug>
-#include <QModelIndexList>
 #include <QApplication>
 #include <QDrag>
 #include <QMdiArea>
 #include <QMdiSubWindow>
 #include <QMainWindow>
+#include <QItemSelectionModel>
 #include "spectrum_list_model.h"
 #include "spectrum_list_mime_data.h"
 #include "spectrum_pen_struct.h"
@@ -25,6 +25,42 @@ ui::SpectrumListView::SpectrumListView(QWidget *parent)
 
 const ctrl::SpectrumListModel* ui::SpectrumListView::getSourceSpectrumListModel() {
     return m_sourceSpectrumListModel;
+}
+
+void ui::SpectrumListView::deselectAll() {
+    selectionModel()->clearSelection();
+}
+
+void ui::SpectrumListView::invertSelection() {
+    QItemSelectionModel* spectrumListViewSelectionModel = selectionModel();
+
+    int i = 0;
+    QModelIndex index = model()->index(i++, 0);
+    while (index.isValid()) {
+        spectrumListViewSelectionModel->select(index, QItemSelectionModel::Toggle);
+        index = model()->index(i++, 0);
+    }
+}
+
+void ui::SpectrumListView::showHideSpectrum() {
+    QModelIndexList indexListViewSelection = selectedIndexes();
+    ctrl::SpectrumListModel* specModel = qobject_cast<ctrl::SpectrumListModel*>(model());
+
+    for(auto &index : indexListViewSelection){
+        specModel->changeVisibilitySpectrum(index);
+    }
+}
+
+void ui::SpectrumListView::spectrumSettings() {
+
+}
+
+void ui::SpectrumListView::spectrumInformation() {
+
+}
+
+void ui::SpectrumListView::deleteSpectrum() {
+
 }
 
 void ui::SpectrumListView::mouseDoubleClickEvent(QMouseEvent *event) {

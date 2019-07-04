@@ -4,13 +4,18 @@
 #include "spectrum_spm.h"
 #include <QPen>
 #include <QColor>
+#include <QFont>
+#include <QBrush>
+
 
 namespace ctrl {
     struct SpectrumPenStruct
     {
         SpectrumSPM spm;
         QPen penForChart;
-        QColor textColorForView;
+        QFont textFontForView;
+        QBrush backgroundColor;
+        bool visible = true;
     };
 }
 

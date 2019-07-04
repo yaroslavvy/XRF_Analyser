@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <QDebug>
 #include <QItemSelectionModel>
+#include <QGroupBox>
 #include "work_area_view.h"
 #include "spectrum_list_model.h"
 #include "spectrum_chart.h"
@@ -55,6 +56,18 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     m_lstViewSpectrums->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_lstViewSpectrums->setEditTriggers(QAbstractItemView::SelectedClicked);
 
+    QLabel* spectrumLabelView = new QLabel(tr("Spectrum List"));
+    spectrumLabelView->setAlignment(Qt::AlignCenter);
+    QFont spectrumLabelViewFont = spectrumLabelView->font();
+    spectrumLabelViewFont.setBold(true);
+    spectrumLabelView->setFont(spectrumLabelViewFont);
+
+    QLabel* gatesLabelView = new QLabel(tr("Energy Gates"));
+    gatesLabelView->setAlignment(Qt::AlignCenter);
+    QFont gatesLabelViewFont = gatesLabelView->font();
+    gatesLabelViewFont.setBold(true);
+    gatesLabelView->setFont(gatesLabelViewFont);
+
     m_lstViewGates = new QListView;
 
     slotAddTab();
@@ -62,7 +75,6 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     QAction* buttonAddTab = new QAction(tr("Add Tab"), nullptr);
     buttonAddTab->setText(tr("Add &Tab"));
     buttonAddTab->setShortcut(QKeySequence("CTRL+T"));
-    buttonAddTab->setToolTip(tr("Add Tab"));
     buttonAddTab->setToolTip(tr("Create a new tab at the window"));
     buttonAddTab->setWhatsThis(tr("Create a new tab at the window"));
     buttonAddTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/addTab.png"));
@@ -71,7 +83,6 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     QAction* buttonRemoveTab = new QAction(tr("Remove Tab"), nullptr);
     buttonRemoveTab->setText(tr("&Remove Tab"));
     buttonRemoveTab->setShortcut(QKeySequence("CTRL+R"));
-    buttonRemoveTab->setToolTip(tr("Remove Tab"));
     buttonRemoveTab->setToolTip(tr("Remove active tab from the window"));
     buttonRemoveTab->setWhatsThis(tr("Remove active tab from the window"));
     buttonRemoveTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/removeTab.png"));
@@ -81,6 +92,77 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     ptbTab->addAction(buttonAddTab);
     ptbTab->addAction(buttonRemoveTab);
     ptbTab->setOrientation(Qt::Vertical);
+
+    QAction* selectAllSpectrumTab = new QAction(tr("Select All"), nullptr);
+    selectAllSpectrumTab->setText(tr("&Select All"));
+    selectAllSpectrumTab->setShortcut(QKeySequence("CTRL+A"));
+    selectAllSpectrumTab->setToolTip(tr("Select all spectrums in the list"));
+    selectAllSpectrumTab->setWhatsThis(tr("Select all spectrums in the list"));
+    selectAllSpectrumTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/selectAll.png"));
+    connect(selectAllSpectrumTab, SIGNAL(triggered()), m_lstViewSpectrums, SLOT(selectAll()));
+
+    QAction* deselectAllSpectrumTab = new QAction(tr("Deselect All"), nullptr);
+    deselectAllSpectrumTab->setText(tr("&Deselect All"));
+    deselectAllSpectrumTab->setShortcut(QKeySequence("CTRL+D"));
+    deselectAllSpectrumTab->setToolTip(tr("Deselect all spectrums in the list"));
+    deselectAllSpectrumTab->setWhatsThis(tr("Deselect all spectrums in the list"));
+    deselectAllSpectrumTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/deselectAll.png"));
+    connect(deselectAllSpectrumTab, SIGNAL(triggered()), m_lstViewSpectrums, SLOT(deselectAll()));
+
+    QAction* invertSelectionTab = new QAction(tr("Invert Selection"), nullptr);
+    invertSelectionTab->setText(tr("&Invert Selection"));
+    invertSelectionTab->setShortcut(QKeySequence("CTRL+I"));
+    invertSelectionTab->setToolTip(tr("Invert selection in the list"));
+    invertSelectionTab->setWhatsThis(tr("Invert selection in the list"));
+    invertSelectionTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/invertSelection.png"));
+    connect(invertSelectionTab, SIGNAL(triggered()), m_lstViewSpectrums, SLOT(invertSelection()));
+
+    QAction* showHideSpectrumTab = new QAction(tr("Show/Hide Spectrum"), nullptr);
+    showHideSpectrumTab->setText(tr("S&how/Hide Spectrum"));
+    showHideSpectrumTab->setShortcut(QKeySequence("SPACE"));
+    showHideSpectrumTab->setToolTip(tr("Show or hide in the chart view"));
+    showHideSpectrumTab->setWhatsThis(tr("Show or hide in the chart view"));
+    showHideSpectrumTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/showHideSpectrum.png"));
+    connect(showHideSpectrumTab, SIGNAL(triggered()), m_lstViewSpectrums, SLOT(showHideSpectrum()));
+
+    QAction* spectrumSettingsTab = new QAction(tr("Spectrum Settings"), nullptr);
+    spectrumSettingsTab->setText(tr("Sp&ectrum Settings"));
+    spectrumSettingsTab->setShortcut(QKeySequence("CTRL+E"));
+    spectrumSettingsTab->setToolTip(tr("Settings of the spectrum"));
+    spectrumSettingsTab->setWhatsThis(tr("Settings of the spectrum"));
+    spectrumSettingsTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/spectrumSettings.png"));
+    connect(spectrumSettingsTab, SIGNAL(triggered()), m_lstViewSpectrums, SLOT(spectrumSettings()));
+
+    QAction* spectrumInformationTab = new QAction(tr("Spectrum Information"), nullptr);
+    spectrumInformationTab->setText(tr("Spectr&um Information"));
+    spectrumInformationTab->setShortcut(QKeySequence("CTRL+U"));
+    spectrumInformationTab->setToolTip(tr("Spectrum Information"));
+    spectrumInformationTab->setWhatsThis(tr("Spectrum Information"));
+    spectrumInformationTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/spectrumInformation.png"));
+    connect(spectrumInformationTab, SIGNAL(triggered()), m_lstViewSpectrums, SLOT(spectrumInformation()));
+
+    QAction* deleteSpectrumTab = new QAction(tr("Delete Spectrum"), nullptr);
+    deleteSpectrumTab->setText(tr("Delete Spectrum"));
+    deleteSpectrumTab->setShortcut(QKeySequence("DELETE"));
+    deleteSpectrumTab->setToolTip(tr("Delete selected spectrums"));
+    deleteSpectrumTab->setWhatsThis(tr("Delete selected spectrums"));
+    deleteSpectrumTab->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/delete.png"));
+    connect(deleteSpectrumTab, SIGNAL(triggered()), m_lstViewSpectrums, SLOT(deleteSpectrum()));
+
+    QToolBar* spectrumListViewTab = new QToolBar(tr("Spectrum operations"));
+    spectrumListViewTab->addAction(selectAllSpectrumTab);
+    spectrumListViewTab->addAction(deselectAllSpectrumTab);
+    spectrumListViewTab->addAction(invertSelectionTab);
+    spectrumListViewTab->addSeparator();
+    spectrumListViewTab->addAction(showHideSpectrumTab);
+    spectrumListViewTab->addSeparator();
+    spectrumListViewTab->addAction(spectrumSettingsTab);
+    spectrumListViewTab->addAction(spectrumInformationTab);
+    spectrumListViewTab->addSeparator();
+    spectrumListViewTab->addAction(deleteSpectrumTab);
+    spectrumListViewTab->setOrientation(Qt::Horizontal);
+
+    spectrumListViewTab->setMinimumWidth(300);
 
     m_messageWindow = new QTextEdit;
     m_messageWindow->setReadOnly(true);
@@ -92,7 +174,6 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     hbLayoutAxisModes->addWidget(m_cBoxModeX);
     hbLayoutAxisModes->addWidget(m_cBoxModeY);
     hbLayoutAxisModes->setMargin(0);
-
 
     QVBoxLayout* vbLayoutButtonsTab = new QVBoxLayout;
     vbLayoutButtonsTab->addWidget(m_tab);
@@ -110,8 +191,35 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     vSpl1->addWidget(wgtButtonTab);
     vSpl1->addWidget(m_messageWindow);
 
-    vSpl2->addWidget(m_lstViewSpectrums);
-    vSpl2->addWidget(m_lstViewGates);
+    QHBoxLayout* hbLayoutSpectrumListViewTab = new QHBoxLayout;
+    hbLayoutSpectrumListViewTab->addWidget(spectrumListViewTab);
+    hbLayoutSpectrumListViewTab->setMargin(0);
+    hbLayoutSpectrumListViewTab->setAlignment(Qt::AlignCenter);
+
+    QVBoxLayout* vbLayoutSpectrumListView = new QVBoxLayout;
+    vbLayoutSpectrumListView->addWidget(spectrumLabelView);
+    vbLayoutSpectrumListView->addLayout(hbLayoutSpectrumListViewTab);
+    vbLayoutSpectrumListView->addWidget(m_lstViewSpectrums);
+    vbLayoutSpectrumListView->setMargin(6);
+
+    QGroupBox* spectrumListGroupBox = new QGroupBox;
+    spectrumListGroupBox->setLayout(vbLayoutSpectrumListView);
+
+    QVBoxLayout* vbLayoutSpectrumListGatesView = new QVBoxLayout;
+    vbLayoutSpectrumListGatesView->addWidget(spectrumListGroupBox);
+
+    QVBoxLayout* vbLayoutGatesListView = new QVBoxLayout;
+    vbLayoutGatesListView->addWidget(gatesLabelView);
+    vbLayoutGatesListView->addWidget(m_lstViewGates);
+    vbLayoutGatesListView->setMargin(6);
+
+    QGroupBox* gatesListGroupBox = new QGroupBox;
+    gatesListGroupBox->setLayout(vbLayoutGatesListView);
+
+    vbLayoutSpectrumListGatesView->addWidget(gatesListGroupBox);
+
+    vbLayoutSpectrumListGatesView->setMargin(0);
+    vSpl2->setLayout(vbLayoutSpectrumListGatesView);
 
     hSpl->addWidget(vSpl1);
     hSpl->addWidget(vSpl2);

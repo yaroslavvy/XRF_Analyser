@@ -16,11 +16,13 @@ namespace ctrl {
         void addSpectrum(const SpectrumSPM& newSpectrum);
         void setDefaultViewSpectrums();
         void setActivatedSpectrum(const QModelIndex& index);
+        void changeVisibilitySpectrum(const QModelIndex& index);
         QVariant data (const QModelIndex& index, int nRole = Qt::DisplayRole) const override;
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         bool setData(const QModelIndex& index, const QVariant& value, int nRole) override;
         Qt::ItemFlags flags(const QModelIndex &index) const override;
         const QList<SpectrumPenStruct>& getSpecList() const;
+
     signals:
         void updateSpectrums(bool resizeAxis);
     private:

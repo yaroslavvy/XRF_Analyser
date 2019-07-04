@@ -193,6 +193,10 @@ void ui::SpectrumChart::setAndRepaintMouseCursor(const QPointF &newMousePos){
 
 void ui::SpectrumChart::addSpectrum(const ctrl::SpectrumPenStruct &specPenStruct, bool resizeAxis)
 {
+    if(!specPenStruct.visible) {
+        return;
+    }
+
     QtCharts::QLineSeries* series = new QtCharts::QLineSeries;
     series->setPen(specPenStruct.penForChart);
 

@@ -16,6 +16,15 @@ namespace ui {
     public:
         SpectrumListView(QWidget *parent = nullptr);
         static const ctrl::SpectrumListModel* getSourceSpectrumListModel();
+
+    public slots:
+        void deselectAll();
+        void invertSelection();
+        void showHideSpectrum();
+        void spectrumSettings();
+        void spectrumInformation();
+        void deleteSpectrum();
+
     protected:
         void mouseDoubleClickEvent(QMouseEvent *event) override;
         void mousePressEvent(QMouseEvent *event) override;
