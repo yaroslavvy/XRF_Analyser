@@ -3,7 +3,9 @@
 
 ctrl::SpectrumListModel::SpectrumListModel(QObject* parent)
     : QAbstractListModel (parent),
-      m_orderNumberLoadedSpectrum(0) {
+      m_orderNumberLoadedSpectrum(0),
+      m_activatedSpectrumIndex(QModelIndex())
+{
 }
 
 const QList<ctrl::SpectrumPenStruct>& ctrl::SpectrumListModel::getSpecList() const {
@@ -15,40 +17,68 @@ void ctrl::SpectrumListModel::addSpectrum(const SpectrumSPM& newSpectrum) {
         SpectrumPenStruct previousActivatedSpectrumPenStruct;
         previousActivatedSpectrumPenStruct = m_specList.at(m_activatedSpectrumIndex.row());
         previousActivatedSpectrumPenStruct.penForChart.setWidth(DEFAULT_WIDTH_OF_LINE_SPECTRUM_ON_THE_CHART);
+        previousActivatedSpectrumPenStruct.activated = false;
         previousActivatedSpectrumPenStruct.textFontForView.setBold(false);
-        m_specList.replace(m_activatedSpectrumIndex.row(), previousActivatedSpectrumPenStruct);
+        m_specList.replace(m_activatedSpectrumIndex.row(), previousActivatedSpectrumPenStruct);//
     }
 
     SpectrumPenStruct spectrumPenStruct;
     spectrumPenStruct.penForChart = srvcSpec::getPenForSpec(m_orderNumberLoadedSpectrum++, DEFAULT_WIDTH_OF_LINE_SPECTRUM_ON_THE_CHART);
-    spectrumPenStruct.textFontForView.setBold(true);
     spectrumPenStruct.penForChart.setWidth(WIDTH_OF_LINE_ACTIVATED_SPECTRUM_ON_THE_CHART);
+    spectrumPenStruct.activated = true;
+    spectrumPenStruct.textFontForView.setBold(true);
 
     spectrumPenStruct.spm = newSpectrum;
     m_specList.push_back(spectrumPenStruct);
     emit dataChanged(QModelIndex(), QModelIndex());
-    m_activatedSpectrumIndex = index(m_specList.size() - 1);
     emit updateSpectrums(true);
+    m_activatedSpectrumIndex = index((m_specList.size() - 1), 0);
+}
+
+void ctrl::SpectrumListModel::removeSpectrum(const QModelIndexList& indexList) {
+    int bias = 0;
+    for (auto &index : indexList) {
+        if(!index.isValid()) {
+            return;
+        }
+        m_specList.removeAt(index.row() - bias);
+        removeRow(index.row() - bias);
+        ++bias;
+    }
+    int i = 0;
+    m_activatedSpectrumIndex = QModelIndex();
+    for(auto &spectrumPenStruct : m_specList){
+        if(spectrumPenStruct.activated) {
+            m_activatedSpectrumIndex = index(i);
+            break;
+        }
+        ++i;
+    }
+    emit dataChanged(QModelIndex(), QModelIndex());
+    emit updateSpectrums(false);
 }
 
 void ctrl::SpectrumListModel::setActivatedSpectrum(const QModelIndex& index){
     if(!index.isValid()) {
         return;
     }
-    SpectrumPenStruct previousActivatedSpectrumPenStruct;
-    previousActivatedSpectrumPenStruct = m_specList.at(m_activatedSpectrumIndex.row());
-    previousActivatedSpectrumPenStruct.penForChart.setWidth(DEFAULT_WIDTH_OF_LINE_SPECTRUM_ON_THE_CHART);
-    previousActivatedSpectrumPenStruct.textFontForView.setBold(false);
-    m_specList.replace(m_activatedSpectrumIndex.row(), previousActivatedSpectrumPenStruct);
+    if(m_activatedSpectrumIndex.isValid()) {
+        SpectrumPenStruct previousActivatedSpectrumPenStruct;
+        previousActivatedSpectrumPenStruct = m_specList.at(m_activatedSpectrumIndex.row());
+        previousActivatedSpectrumPenStruct.penForChart.setWidth(DEFAULT_WIDTH_OF_LINE_SPECTRUM_ON_THE_CHART);
+        previousActivatedSpectrumPenStruct.textFontForView.setBold(false);
+        previousActivatedSpectrumPenStruct.activated = false;
+        m_specList.replace(m_activatedSpectrumIndex.row(), previousActivatedSpectrumPenStruct);
+    }
 
     SpectrumPenStruct activatedSpectrumPenStruct;
     activatedSpectrumPenStruct = m_specList.at(index.row());
     activatedSpectrumPenStruct.penForChart.setWidth(WIDTH_OF_LINE_ACTIVATED_SPECTRUM_ON_THE_CHART);
     activatedSpectrumPenStruct.textFontForView.setBold(true);
+    activatedSpectrumPenStruct.activated = true;
     m_specList.replace(index.row(), activatedSpectrumPenStruct);
 
-    emit dataChanged(m_activatedSpectrumIndex, m_activatedSpectrumIndex);
-    emit dataChanged(index, index);
+    emit dataChanged(QModelIndex(), QModelIndex());
     emit updateSpectrums(false);
     m_activatedSpectrumIndex = index;
 }

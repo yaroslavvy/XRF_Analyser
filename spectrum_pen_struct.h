@@ -16,6 +16,7 @@ namespace ctrl {
         QFont textFontForView;
         QBrush backgroundColor;
         bool visible = true;
+        bool activated = false;
     };
 }
 

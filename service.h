@@ -4,11 +4,16 @@
 #include <QObject>
 #include <string>
 class QPen;
+class QWidget;
+
+namespace ui {
+    class MainWindow;
+}
 
 namespace srvcSpec {
     const std::string commaToDot (std::string str);
     const QPen getPenForSpec (int orderNumberLoadedSpectrum, int penWidth);
-    QList<QWidget*> findParentWidgets(const QWidget* widget);
+    ui::MainWindow* getMainWindow(QWidget* widget);
 }
 
 #endif // QUALITATIVE_ANALYSIS_SERVICE_H

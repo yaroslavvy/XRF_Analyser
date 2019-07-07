@@ -39,7 +39,8 @@ SOURCES += \
     exception.cpp \
     spectrum_list_view.cpp \
     spectrum_list_mime_data.cpp \
-    tab_bar_spec_window.cpp
+    tab_bar_spec_window.cpp \
+    list_view_interface_item_tool_bar.cpp
 
 HEADERS += \
     service.h \
@@ -57,7 +58,8 @@ HEADERS += \
     exception.h \
     spectrum_list_view.h \
     spectrum_list_mime_data.h \
-    tab_bar_spec_window.h
+    tab_bar_spec_window.h \
+    list_view_interface_item_tool_bar.h
 
 FORMS +=
 

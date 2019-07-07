@@ -1,4 +1,5 @@
 #include "service.h"
+#include "main_window.h"
 #include <algorithm>
 #include <QColor>
 #include <QVector>
@@ -39,16 +40,16 @@ const QPen srvcSpec::getPenForSpec(int orderNumberLoadedSpectrum, int penWidth) 
     return QPen(QBrush(QColor(penColors[color][0], penColors[color][1], penColors[color][2])), penWidth);
 }
 
-QList<QWidget*> srvcSpec::findParentWidgets(const QWidget* widget) {
-    QList<QWidget*> widgetList;
-    if (widget == nullptr){
-        return widgetList;
+ui::MainWindow* srvcSpec::getMainWindow(QWidget* widget) {
+    QWidget* parentWgt = widget->parentWidget();
+    if(parentWgt == nullptr){
+        return nullptr;
     }
-    widgetList.push_back(widget->parentWidget());
-    while (widgetList.last() != nullptr) {
-        widgetList.push_back(widgetList.last()->parentWidget());
+    QWidget* previousParentWgt;
+    while (parentWgt != nullptr) {
+        previousParentWgt = parentWgt;
+        parentWgt = parentWgt->parentWidget();
     }
-    widgetList.pop_back();
-    return widgetList;
+    return qobject_cast<ui::MainWindow*>(previousParentWgt);
 }
 

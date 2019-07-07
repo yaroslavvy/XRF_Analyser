@@ -14,6 +14,7 @@ namespace ctrl {
     public:
         SpectrumListModel(QObject* parent = nullptr);
         void addSpectrum(const SpectrumSPM& newSpectrum);
+        void removeSpectrum(const QModelIndexList& indexList);
         void setDefaultViewSpectrums();
         void setActivatedSpectrum(const QModelIndex& index);
         void changeVisibilitySpectrum(const QModelIndex& index);

@@ -4,7 +4,9 @@
 #include <QDropEvent>
 #include <QGraphicsScene>
 #include <QDebug>
+#include "main_window.h"
 #include "work_area_view.h"
+#include "service.h"
 #include "spectrum_list_mime_data.h"
 #include "spectrum_list_view.h"
 
@@ -75,4 +77,14 @@ void ui::WorkAreaView::dropEvent (QDropEvent *event) {
             thisSpectrumListModel->addSpectrum(spectrum);
         }
     }
+}
+
+void ui::WorkAreaView::focusInEvent(QFocusEvent *event) {
+    srvcSpec::getMainWindow(this)->setActiveCopyPasteButtons(true);
+    QtCharts::QChartView::focusInEvent(event);
+}
+
+void ui::WorkAreaView::focusOutEvent(QFocusEvent *event) {
+    srvcSpec::getMainWindow(this)->setActiveCopyPasteButtons(false);
+    QtCharts::QChartView::focusInEvent(event);
 }
