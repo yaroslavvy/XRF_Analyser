@@ -7,20 +7,27 @@
 #include "spectrum_pen_struct.h"
 #include "spectrum_list_model.h"
 #include "spectrum_chart_axis_modes.h"
+#include "gate_pen.h"
+
+namespace ctrl {
+    class GatesTableModel;
+}
 
 namespace ui {
-
     class SpectrumChart : public QtCharts::QChart {
 
         Q_OBJECT
 
     public:
         SpectrumChart(QGraphicsItem* parent = nullptr);
-        void addSpectrum(const ctrl::SpectrumPenStruct&, bool resizeAxis = true);
+        void addSpectrum(const ctrl::SpectrumPenStruct& specPenStruct, bool resizeAxis = true);
+        void addGate(const ctrl::GatePen& gatePen, bool resizeAxis = false);
         void setModelSpectrums(ctrl::SpectrumListModel* model);
+        void setModelGates(ctrl::GatesTableModel* model);
         void setFullSizeSpectrumArea();
 
         ctrl::SpectrumListModel* getModelSpectrums() const;
+        ctrl::GatesTableModel* getModelGates() const;
 
         void setXMode(AxisXMode);
         ui::AxisXMode getXMode() const;
@@ -29,7 +36,7 @@ namespace ui {
 
     public slots:
         void recoverAxisLimits();
-        void slotUpdateSpectrums(bool resizeAxis);
+        void slotUpdateChart(bool resizeAxis);//TODO: add implementation for gate
         void slotCursorMode(int cursorMode);//TODO: enum for cursorMode
         void setAndRepaintMouseCursor(const QPointF &newMousePos);
 
@@ -51,6 +58,7 @@ namespace ui {
         const double MAX_POSSIBLE_WAVE_LENGTH_A = 24.796;
 
         ctrl::SpectrumListModel* m_modelSpec;
+        ctrl::GatesTableModel* m_modelGate;
 
         AxisXMode m_xMode;
         AxisYMode m_yMode;

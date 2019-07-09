@@ -40,7 +40,13 @@ SOURCES += \
     spectrum_list_view.cpp \
     spectrum_list_mime_data.cpp \
     tab_bar_spec_window.cpp \
-    list_view_interface_item_tool_bar.cpp
+    list_view_interface_item_tool_bar.cpp \
+    gates_table_view.cpp \
+    table_view_interface_item_tool_bar.cpp \
+    gates_table_model.cpp \
+    gate.cpp \
+    spectrum_algorithms.cpp \
+    gate_table_mime_data.cpp
 
 HEADERS += \
     service.h \
@@ -59,7 +65,14 @@ HEADERS += \
     spectrum_list_view.h \
     spectrum_list_mime_data.h \
     tab_bar_spec_window.h \
-    list_view_interface_item_tool_bar.h
+    list_view_interface_item_tool_bar.h \
+    gates_table_view.h \
+    table_view_interface_item_tool_bar.h \
+    gates_table_model.h \
+    gate.h \
+    gate_pen.h \
+    spectrum_algorithms.h \
+    gate_table_mime_data.h
 
 FORMS +=
 

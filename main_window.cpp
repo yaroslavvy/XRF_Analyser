@@ -10,6 +10,7 @@
 #include <QStatusBar>
 #include <QTranslator>
 #include <QFocusEvent>
+#include <QClipboard>
 #include <QDebug>
 #include "bar_clock.h"
 #include "list_view_interface_item_tool_bar.h"
@@ -17,23 +18,23 @@
 ui::MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
     const QString pathIconMenuDefaultStyle("resources/pictures/menuIcons/defaultStyle/");
-    QAction* actNew = new QAction(tr("New Window"), nullptr);
-    actNew->setText(tr("&New Window"));
-    actNew->setShortcut(QKeySequence("CTRL+N"));
-    actNew->setToolTip(tr("New Window"));
-    actNew->setToolTip(tr("Create a new windows for spectrums"));
-    actNew->setWhatsThis(tr("Create a new windows for spectrums"));
-    actNew->setIcon(QPixmap(pathIconMenuDefaultStyle + "newWindow52.png"));
-    connect(actNew, SIGNAL(triggered()), this, SLOT(slotNewSingleWindow()));
+    m_actNew = new QAction(tr("New Window"), nullptr);
+    m_actNew->setText(tr("&New Window"));
+    m_actNew->setShortcut(QKeySequence("CTRL+N"));
+    m_actNew->setToolTip(tr("New Window"));
+    m_actNew->setToolTip(tr("Create a new windows for spectrums"));
+    m_actNew->setWhatsThis(tr("Create a new windows for spectrums"));
+    m_actNew->setIcon(QPixmap(pathIconMenuDefaultStyle + "newWindow52.png"));
+    connect(m_actNew, SIGNAL(triggered()), this, SLOT(slotNewSingleWindow()));
 
-    QAction* actOpen = new QAction(tr("Open file"), nullptr);
-    actOpen->setText(tr("&Open..."));
-    actOpen->setShortcut(QKeySequence("CTRL+O"));
-    actOpen->setToolTip(tr("Open File"));
-    actOpen->setToolTip(tr("Open file with spectrum or window with spectrums"));
-    actOpen->setWhatsThis(tr("Open file with spectrum or window with spectrums"));
-    actOpen->setIcon(QPixmap(pathIconMenuDefaultStyle + "openFile52.png"));
-    connect(actOpen, SIGNAL(triggered()), this, SLOT(slotLoad()));
+    m_actOpen = new QAction(tr("Open file"), nullptr);
+    m_actOpen->setText(tr("&Open..."));
+    m_actOpen->setShortcut(QKeySequence("CTRL+O"));
+    m_actOpen->setToolTip(tr("Open File"));
+    m_actOpen->setToolTip(tr("Open file with spectrum or window with spectrums"));
+    m_actOpen->setWhatsThis(tr("Open file with spectrum or window with spectrums"));
+    m_actOpen->setIcon(QPixmap(pathIconMenuDefaultStyle + "openFile52.png"));
+    connect(m_actOpen, SIGNAL(triggered()), this, SLOT(slotLoad()));
 
     m_actSave = new QAction(tr("Save"), nullptr);
     m_actSave->setText(tr("&Save"));
@@ -45,8 +46,8 @@ ui::MainWindow::MainWindow(QWidget *parent)
     connect(m_actSave, SIGNAL(triggered()), this, SLOT(slotSave()));
 
     QToolBar* tbFile = new QToolBar(tr("File Operations"));
-    tbFile->addAction(actNew);
-    tbFile->addAction(actOpen);
+    tbFile->addAction(m_actNew);
+    tbFile->addAction(m_actOpen);
     tbFile->addAction(m_actSave);
     addToolBar(Qt::LeftToolBarArea, tbFile);
 
@@ -142,8 +143,8 @@ ui::MainWindow::MainWindow(QWidget *parent)
     addToolBar(Qt::RightToolBarArea, editToolBar);
 
     QMenu* mnuFile = new QMenu(tr("&File"));
-    mnuFile->addAction(actNew);
-    mnuFile->addAction(actOpen);
+    mnuFile->addAction(m_actNew);
+    mnuFile->addAction(m_actOpen);
     mnuFile->addAction(m_actSave);
     mnuFile->addAction(tr("Save &As..."), this, SLOT(slotSaveAs()));
     mnuFile->addSeparator();
@@ -177,7 +178,16 @@ ui::MainWindow::MainWindow(QWidget *parent)
     statusBar()->addPermanentWidget(pStatBarClock);
     statusBar()->showMessage(tr("Ready..."), 3000);
 
-    setActiveItemToolBar(false);
+    setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
+    setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
+    setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);
+    setButtonEnable(MAIN_WINDOW_BUTTONS::SHOW_HIDE_ITEMS, false);
+    setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_PRESENTATION_SETTINGS, false);
+    setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_INFORMATION, false);
+    setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, false);
+    setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, false);
+    setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, false);
+
 }
 
 ui::SingleWindow* ui::MainWindow::createNewSingleWindow() {
@@ -311,19 +321,43 @@ void ui::MainWindow::pasteItem() {
     }
 }
 
-void ui::MainWindow::setActiveItemToolBar(bool activity) {
-    m_actSelectAllItems->setEnabled(activity);
-    m_actDeselectAllItems->setEnabled(activity);
-    m_actInvertSelection->setEnabled(activity);
-    m_actShowHideItems->setEnabled(activity);
-    m_actItemPresentationSettings->setEnabled(activity);
-    m_actItemInformation->setEnabled(activity);
-    m_actDeleteItem->setEnabled(activity);
-    m_actCopyItem->setEnabled(activity);
-    m_actPasteItem->setEnabled(activity);
-}
-
-void ui::MainWindow::setActiveCopyPasteButtons (bool activity) {
-    m_actCopyItem->setEnabled(activity);
-    m_actPasteItem->setEnabled(activity);
+void ui::MainWindow::setButtonEnable(MAIN_WINDOW_BUTTONS button, bool state) {
+    switch(button) {
+        case NEW_SINGLE_WINDOW:
+            m_actNew->setEnabled(state);
+            break;
+        case OPEN:
+            m_actOpen->setEnabled(state);
+            break;
+        case SAVE:
+            m_actSave->setEnabled(state);
+            break;
+        case SELECT_ALL_ITEMS:
+            m_actSelectAllItems->setEnabled(state);
+            break;
+        case DESELECT_ALL_ITEMS:
+            m_actDeselectAllItems->setEnabled(state);
+            break;
+        case INVERT_SELECTION:
+            m_actInvertSelection->setEnabled(state);
+            break;
+        case SHOW_HIDE_ITEMS:
+            m_actShowHideItems->setEnabled(state);
+            break;
+        case ITEM_PRESENTATION_SETTINGS:
+            m_actItemPresentationSettings->setEnabled(state);
+            break;
+        case ITEM_INFORMATION:
+            m_actItemInformation->setEnabled(state);
+            break;
+        case DELETE_ITEMS:
+            m_actDeleteItem->setEnabled(state);
+            break;
+        case COPY_ITEMS:
+            m_actCopyItem->setEnabled(state);
+            break;
+        case PASTE_ITEMS:
+            m_actPasteItem->setEnabled(state);
+            break;
+    }
 }

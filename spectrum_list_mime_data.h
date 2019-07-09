@@ -2,9 +2,10 @@
 #define QUALITATIVE_ANALYSIS_SPECTRUM_LIST_MIME_DATA_H
 
 #include <QMimeData>
-#include "spectrum_spm.h"
 
 namespace ctrl {
+    class SpectrumSPM;
+
     class SpectrumListMimeData : public QMimeData {
     public:
         SpectrumListMimeData();

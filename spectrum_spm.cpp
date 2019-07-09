@@ -11,15 +11,8 @@
 ctrl::SpectrumSPM::SpectrumSPM() {
 }
 
-void ctrl::SpectrumSPM::readFromFile(const QString& fileName) {
-    if (!QFile::exists(fileName)) {
-        throw Exception(fileName + QTranslator::tr(" File not found\n"));
-    }
-    QFile file(fileName);
+void ctrl::SpectrumSPM::readFromFile(QFile& file) {
     QFileInfo fileInfo(file);
-    if(!file.open(QIODevice::ReadOnly)) {
-        throw Exception(fileInfo.fileName() + QTranslator::tr(" Opening is failed\n"));
-    }
     m_spectrumAttributes.intensities.clear();
     if(!file.atEnd()) {
         setSpectrumName(fileInfo.fileName());

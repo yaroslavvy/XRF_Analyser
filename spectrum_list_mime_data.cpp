@@ -1,4 +1,5 @@
 #include "spectrum_list_mime_data.h"
+#include "spectrum_spm.h"
 
 ctrl::SpectrumListMimeData::SpectrumListMimeData()
     :QMimeData ()

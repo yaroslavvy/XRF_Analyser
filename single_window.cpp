@@ -23,11 +23,17 @@
 #include <QItemSelectionModel>
 #include <QGroupBox>
 #include "work_area_view.h"
+#include "exception.h"
 #include "spectrum_list_model.h"
+#include "spectrum_list_view.h"
+#include "gates_table_view.h"
+#include "gates_table_model.h"
+#include "tab_spec_window.h"
 #include "spectrum_chart.h"
 #include "spectrum_spm.h"
 #include "exception.h"
 #include "service.h"
+#include "main_window.h"
 
 ui::SingleWindow::SingleWindow(QWidget *pwgt)
     : QWidget(pwgt) {
@@ -53,8 +59,6 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     connect(m_tab, SIGNAL(modeYChanged(int)), m_cBoxModeY, SLOT(setCurrentIndex(int)));
 
     m_lstViewSpectrums = new ui::SpectrumListView;
-    m_lstViewSpectrums->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    m_lstViewSpectrums->setEditTriggers(QAbstractItemView::SelectedClicked);
 
     QLabel* spectrumLabelView = new QLabel(tr("Spectrum List"));
     spectrumLabelView->setAlignment(Qt::AlignCenter);
@@ -62,13 +66,13 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     spectrumLabelViewFont.setBold(true);
     spectrumLabelView->setFont(spectrumLabelViewFont);
 
+    m_tblViewGates = new ui::GatesTableView;
+
     QLabel* gatesLabelView = new QLabel(tr("Energy Gates"));
     gatesLabelView->setAlignment(Qt::AlignCenter);
     QFont gatesLabelViewFont = gatesLabelView->font();
     gatesLabelViewFont.setBold(true);
     gatesLabelView->setFont(gatesLabelViewFont);
-
-    m_lstViewGates = new QListView;
 
     slotAddTab();
 
@@ -133,7 +137,7 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
 
     QVBoxLayout* vbLayoutGatesListView = new QVBoxLayout;
     vbLayoutGatesListView->addWidget(gatesLabelView);
-    vbLayoutGatesListView->addWidget(m_lstViewGates);
+    vbLayoutGatesListView->addWidget(m_tblViewGates);
     vbLayoutGatesListView->setMargin(6);
 
     QGroupBox* gatesListGroupBox = new QGroupBox;
@@ -157,16 +161,81 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
 
 void ui::SingleWindow::slotLoad()
 {
-    const QStringList fileList = QFileDialog::getOpenFileNames(nullptr, tr("Open File"), "resources/spectrums/", "*.spm");
+    const QStringList fileList = QFileDialog::getOpenFileNames(nullptr, tr("Open File"), "resources/spectrums/", "*.spm ;; *.csv");
     if(fileList.isEmpty()) {
         return;
     }
 
-    for (auto &name : fileList){
-        ctrl::SpectrumSPM spm;
-
+    for (auto &fileName : fileList) {
         try {
-            spm.readFromFile(name);
+            if (!QFile::exists(fileName)) {
+                throw ctrl::Exception(fileName + QTranslator::tr(" File not found\n"));
+            }
+            QFile file(fileName);
+            QFileInfo fileInfo(file);
+            if(!file.open(QIODevice::ReadOnly)) {
+                throw ctrl::Exception(fileInfo.fileName() + QTranslator::tr(" Opening is failed\n"));
+            }
+
+            QStringList strFileNameLst = fileName.split('.');
+            QString fileExtension = strFileNameLst.last();
+
+            if (fileExtension == "spm") {
+                ctrl::SpectrumSPM spm;
+
+                spm.readFromFile(file);
+
+                setWindowTitle(spm.getSpectrumAttributes().spectrumName);
+
+                QString text;
+
+                m_messageWindow->setTextColor(Qt::green);
+                m_messageWindow->append(tr("File loaded..."));
+                m_messageWindow->setTextColor(Qt::blue);
+                text += tr("Spectrum name: ") + spm.getSpectrumAttributes().spectrumName + "\n";
+                text += tr("Date and time: ") + spm.getSpectrumAttributes().dateTime.toString() + "\n";
+                text += tr("Start spectrum: ") + QString::number(spm.getSpectrumAttributes().energyStartSpectrum_kev) + tr(" KeV\n");
+                text += tr("Finish spectrum: ") + QString::number(spm.getSpectrumAttributes().energyFinishSpectrum_kev) + tr(" KeV\n");
+                text += tr("Step: ") + QString::number(spm.getSpectrumAttributes().energyStepSpectrum_kev) + tr(" KeV\n");
+                text += tr("Tube voltage: ") + QString::number(spm.getSpectrumAttributes().voltageTube) + tr(" KeV\n");
+                text += tr("Tube amperage: ") + QString::number(spm.getSpectrumAttributes().amperageTube) + tr(" mkA\n");
+                text += tr("Tube power: ") + QString::number(spm.getSpectrumAttributes().amperageTube * spm.getSpectrumAttributes().voltageTube * 0.001) + tr(" W\n");
+                text += tr("Exposure: ") + QString::number(spm.getSpectrumAttributes().exposure_s) + tr(" s\n");
+                text += tr("Filter №") + QString::number(spm.getSpectrumAttributes().primaryBeamFilterIndex) + "\n";
+                text += tr("Intensities:\n");
+                QVector<double> vecIntensities = spm.getSpectrumAttributes().intensities;
+                int channel = 0;
+
+                for (auto &val : vecIntensities) {
+                    text += QString::number(val);
+                    if((channel + 1) % 8 == 0) {
+                        text += "\n";
+                    }
+                    else {
+                        text += " ";
+                    }
+                    ++channel;
+                }
+                m_messageWindow->append(text);
+
+                if(m_tab->count() == 0) {
+                    slotAddTab();
+                }
+                m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelSpectrums()->addSpectrum(spm);
+            }
+
+            if (fileExtension == "csv") {
+                while (!file.atEnd()) {
+                    ctrl::Gate gate;
+                    try {
+                        gate.readFromString(file.readLine());
+                    }
+                    catch (const ctrl::Exception &ex) {
+                        throw ctrl::Exception(fileInfo.fileName() + ex.what());
+                    }
+                    m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates()->addGate(gate);
+                }
+            }
         }
         catch (const ctrl::Exception &ex){
             QMessageBox::critical(nullptr, tr("Error!"), tr("Error of the file reading! ") + QString(ex.what()), QMessageBox::Cancel);
@@ -176,44 +245,6 @@ void ui::SingleWindow::slotLoad()
             QMessageBox::critical(nullptr, tr("Error!"), tr("Error of the file reading! Invlid argument: ") + QString(ia.what()), QMessageBox::Cancel);
             return;
         }
-
-        setWindowTitle(spm.getSpectrumAttributes().spectrumName);
-
-        QString text;
-
-        m_messageWindow->setTextColor(Qt::green);
-        m_messageWindow->append(tr("File loaded..."));
-        m_messageWindow->setTextColor(Qt::blue);
-        text += tr("Spectrum name: ") + spm.getSpectrumAttributes().spectrumName + "\n";
-        text += tr("Date and time: ") + spm.getSpectrumAttributes().dateTime.toString() + "\n";
-        text += tr("Start spectrum: ") + QString::number(spm.getSpectrumAttributes().energyStartSpectrum_kev) + tr(" KeV\n");
-        text += tr("Finish spectrum: ") + QString::number(spm.getSpectrumAttributes().energyFinishSpectrum_kev) + tr(" KeV\n");
-        text += tr("Step: ") + QString::number(spm.getSpectrumAttributes().energyStepSpectrum_kev) + tr(" KeV\n");
-        text += tr("Tube voltage: ") + QString::number(spm.getSpectrumAttributes().voltageTube) + tr(" KeV\n");
-        text += tr("Tube amperage: ") + QString::number(spm.getSpectrumAttributes().amperageTube) + tr(" mkA\n");
-        text += tr("Tube power: ") + QString::number(spm.getSpectrumAttributes().amperageTube * spm.getSpectrumAttributes().voltageTube * 0.001) + tr(" W\n");
-        text += tr("Exposure: ") + QString::number(spm.getSpectrumAttributes().exposure_s) + tr(" s\n");
-        text += tr("Filter №") + QString::number(spm.getSpectrumAttributes().primaryBeamFilterIndex) + "\n";
-        text += tr("Intensities:\n");
-        QVector<double> vecIntensities = spm.getSpectrumAttributes().intensities;
-        int channel = 0;
-
-        for (auto &val : vecIntensities) {
-            text += QString::number(val);
-            if((channel + 1) % 8 == 0) {
-                text += "\n";
-            }
-            else {
-                text += " ";
-            }
-            ++channel;
-        }
-        m_messageWindow->append(text);
-
-        if(m_tab->count() == 0) {
-            slotAddTab();
-        }
-        m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelSpectrums()->addSpectrum(spm);
     }
 }
 
@@ -228,12 +259,30 @@ void ui::SingleWindow::slotSaveAs() {
 void ui::SingleWindow::slotAddTab() {
     WorkAreaView* view = new WorkAreaView;
     SpectrumChart* chart = new SpectrumChart;
+
     ctrl::SpectrumListModel* specModel = new ctrl::SpectrumListModel(chart);
     chart->setModelSpectrums(specModel);
     m_lstViewSpectrums->setModel(specModel);
+
+    ctrl::GatesTableModel* gateModel = new ctrl::GatesTableModel(chart);
+    chart->setModelGates(gateModel);
+    m_tblViewGates->setModel(gateModel);
+
     view->setChart(chart);
     m_tab->addTab(view, tr("New Tab"));
     m_tab->setCurrentIndex(m_tab->count() - 1);
+    ui::MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    if (mainWindow != nullptr) {
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SHOW_HIDE_ITEMS, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_PRESENTATION_SETTINGS, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_INFORMATION, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, false);
+    }
 }
 
 void ui::SingleWindow::slotRemoveTab() {
@@ -247,6 +296,5 @@ void ui::SingleWindow::slotRemoveTab() {
 
 void ui::SingleWindow::slotUpdateViews(){
     m_lstViewSpectrums->setModel(m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelSpectrums());
-
-    //TODO: make same updating with m_lstViewGates
+    m_tblViewGates->setModel(m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates());
 }

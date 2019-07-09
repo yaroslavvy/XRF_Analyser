@@ -10,14 +10,28 @@ class QFocusEvent;
 class QAction;
 
 namespace ui {
+    enum MAIN_WINDOW_BUTTONS{
+        NEW_SINGLE_WINDOW,
+        OPEN,
+        SAVE,
+        SELECT_ALL_ITEMS,
+        DESELECT_ALL_ITEMS,
+        INVERT_SELECTION,
+        SHOW_HIDE_ITEMS,
+        ITEM_PRESENTATION_SETTINGS,
+        ITEM_INFORMATION,
+        DELETE_ITEMS,
+        COPY_ITEMS,
+        PASTE_ITEMS
+    };
+
     class MainWindow : public QMainWindow {
 
         Q_OBJECT
 
     public:
         explicit MainWindow(QWidget *parent = nullptr);
-        void setActiveItemToolBar(bool activity);
-        void setActiveCopyPasteButtons (bool activity);
+        void setButtonEnable(MAIN_WINDOW_BUTTONS button, bool state);
 
     private:
         QMdiArea* m_pma;
@@ -25,6 +39,8 @@ namespace ui {
         QSignalMapper* m_psigMapper;
         ui::SingleWindow* createNewSingleWindow();
 
+        QAction* m_actNew;
+        QAction* m_actOpen;
         QAction* m_actSave;
         QAction* m_actSelectAllItems;
         QAction* m_actDeselectAllItems;
@@ -56,7 +72,5 @@ namespace ui {
         void pasteItem();
     };
 }
-
-
 
 #endif // QUALITATIVE_ANALYSIS_MAIN_WINDOW_H

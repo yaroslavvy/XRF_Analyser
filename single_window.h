@@ -2,13 +2,18 @@
 #define QUALITATIVE_ANALYSIS_SINGLE_WINDOW_H
 
 #include <QWidget>
-#include "tab_spec_window.h"
-#include "spectrum_list_view.h"
 class QTextEdit;
 class QListView;
 class QComboBox;
 
 namespace ui {
+
+    class SpectrumListView;
+
+    class GatesTableView;
+
+    class TabSpecWindow;
+
     class SingleWindow : public QWidget {
 
         Q_OBJECT
@@ -20,7 +25,7 @@ namespace ui {
         ui::TabSpecWindow* m_tab;
         QTextEdit* m_messageWindow;
         ui::SpectrumListView* m_lstViewSpectrums;
-        QListView* m_lstViewGates;
+        ui::GatesTableView* m_tblViewGates;
         QComboBox* m_cBoxModeX;
         QComboBox* m_cBoxModeY;
 

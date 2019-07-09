@@ -5,7 +5,9 @@
 
 namespace ui {
     class BarClock : public QLabel {
+
         Q_OBJECT
+
     public:
         BarClock(QWidget* parent = nullptr);
 

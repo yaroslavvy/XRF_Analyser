@@ -1,31 +1,26 @@
-#include "spectrum_list_view.h"
-#include <QMouseEvent>
-#include <QStyledItemDelegate>
-#include <QDebug>
-#include <QApplication>
-#include <QDrag>
-#include <QMdiArea>
-#include <QMdiSubWindow>
-#include <QMainWindow>
-#include <QItemSelectionModel>
-#include <QClipboard>
-#include <QApplication>
-#include <QMenu>
 #include <QAction>
-#include "spectrum_list_model.h"
-#include "spectrum_list_mime_data.h"
-#include "spectrum_pen_struct.h"
+#include <QApplication>
+#include <QClipboard>
+#include <QKeySequence>
+#include <QPixmap>
+#include <QMenu>
+#include <QDrag>
+#include <QMouseEvent>
+#include <QDragEnterEvent>
+#include "gates_table_view.h"
+#include "gates_table_model.h"
+#include "gate_table_mime_data.h"
 #include "main_window.h"
-#include "single_window.h"
 #include "service.h"
 
-ctrl::SpectrumListModel* ui::SpectrumListView::m_sourceSpectrumListModel = nullptr;
-QMenu* ui::SpectrumListView::m_contextMenu = nullptr;
+ctrl::GatesTableModel* ui::GatesTableView::m_sourceGateTableModel = nullptr;
+QMenu* ui::GatesTableView::m_contextMenu = nullptr;
 
-ui::SpectrumListView::SpectrumListView(QWidget *parent)
-    :ListViewInterfaceItemToolBar(parent)
-{
+ui::GatesTableView::GatesTableView(QWidget *parent)
+    : ui::TableViewInterfaceItemToolBar(parent) {
+
     const QString pathIconMenuDefaultStyle("resources/pictures/menuIcons/defaultStyle/");
+    setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::ExtendedSelection);
     setEditTriggers(QAbstractItemView::SelectedClicked);
     setAcceptDrops(true);
@@ -117,49 +112,36 @@ ui::SpectrumListView::SpectrumListView(QWidget *parent)
     m_contextMenu->addAction(m_actContextPasteItem);
 }
 
-const ctrl::SpectrumListModel* ui::SpectrumListView::getSourceSpectrumListModel() {
-    return m_sourceSpectrumListModel;
+const ctrl::GatesTableModel* ui::GatesTableView::getSourceGateTableModel() {
+    return m_sourceGateTableModel;
 }
 
-void ui::SpectrumListView::deselectAll() {
+void ui::GatesTableView::deselectAll() {
     selectionModel()->clearSelection();
 }
 
-void ui::SpectrumListView::invertSelection() {
+void ui::GatesTableView::invertSelection() {
     QItemSelectionModel* spectrumListViewSelectionModel = selectionModel();
 
-    int i = 0;
-    QModelIndex index = model()->index(i++, 0);
+    int row = 0;
+    QModelIndex index = model()->index(row++, 0);
     while (index.isValid()) {
         spectrumListViewSelectionModel->select(index, QItemSelectionModel::Toggle);
-        index = model()->index(i++, 0);
+        index = model()->index(row++, 0);
     }
 }
 
-void ui::SpectrumListView::showHideItems() {
+void ui::GatesTableView::showHideItems() {}
+void ui::GatesTableView::itemPresentationSettings() {}
+void ui::GatesTableView::itemInformation() {}
+
+void ui::GatesTableView::deleteItem() {
     QModelIndexList indexListViewSelection = selectedIndexes();
-    ctrl::SpectrumListModel* specModel = qobject_cast<ctrl::SpectrumListModel*>(model());
-
-    for(auto &index : indexListViewSelection){
-        specModel->changeVisibilitySpectrum(index);
-    }
-}
-
-void ui::SpectrumListView::itemPresentationSettings() {
-
-}
-
-void ui::SpectrumListView::itemInformation() {
-
-}
-
-void ui::SpectrumListView::deleteItem() {
-    QModelIndexList indexListViewSelection = selectedIndexes();
-    ctrl::SpectrumListModel* spectrumModel = qobject_cast<ctrl::SpectrumListModel*>(model());
-    spectrumModel->removeSpectrum(indexListViewSelection);
+    ctrl::GatesTableModel* gateModel = qobject_cast<ctrl::GatesTableModel*>(model());
+    gateModel->removeGate(indexListViewSelection);
     clearSelection();
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
-    if(spectrumModel->rowCount() == 0) {
+    if(gateModel->rowCount() == 0) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);
@@ -169,58 +151,52 @@ void ui::SpectrumListView::deleteItem() {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, false);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, false);
     }
-    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
+    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
 }
 
-void ui::SpectrumListView::copyItem() {
+void ui::GatesTableView::copyItem() {
     const QModelIndexList indexList(selectedIndexes());
     if (indexList.isEmpty()){
         return;
     }
-    const ctrl::SpectrumListModel* specModel = qobject_cast<ctrl::SpectrumListModel*>(model());
-    const QList<ctrl::SpectrumPenStruct> spectrumPenStructList = specModel->getSpecList();
-    QList<ctrl::SpectrumSPM> spectrumList;
+    const ctrl::GatesTableModel* gateModel = qobject_cast<ctrl::GatesTableModel*>(model());
+    const QList<ctrl::GatePen> gatePenList = gateModel->getGateList();
+    QList<ctrl::Gate> gateList;
     for(auto &index : indexList){
-        spectrumList.push_back(spectrumPenStructList.at(index.row()).spm);
+        gateList.push_back(gatePenList.at(index.row()).gate);
     }
     QClipboard* clipboard = QApplication::clipboard();
     clipboard->clear();
-    ctrl::SpectrumListMimeData* spectrumListMimeData = new ctrl::SpectrumListMimeData();
-    spectrumListMimeData->setSpectrumList(spectrumList);
-    clipboard->setMimeData(spectrumListMimeData);
+    ctrl::GateTableMimeData* gateTableMimeData = new ctrl::GateTableMimeData();
+    gateTableMimeData->setGateList(gateList);
+    clipboard->setMimeData(gateTableMimeData);
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
-    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
+    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
 }
 
-void ui::SpectrumListView::pasteItem() {
-    const ctrl::SpectrumListMimeData* spectrumListMimeData = dynamic_cast<const ctrl::SpectrumListMimeData*>(QApplication::clipboard()->mimeData());
-    ctrl::SpectrumListModel* thisSpectrumListModel = qobject_cast<ctrl::SpectrumListModel*>(model());
-    if(spectrumListMimeData != nullptr){
-        QList<ctrl::SpectrumSPM> spectrumList(spectrumListMimeData->getSpectrumList());
-        for(auto &spectrum : spectrumList){
-            thisSpectrumListModel->addSpectrum(spectrum);
+void ui::GatesTableView::pasteItem() {
+    const ctrl::GateTableMimeData* gateTableMimeData = dynamic_cast<const ctrl::GateTableMimeData*>(QApplication::clipboard()->mimeData());
+    ctrl::GatesTableModel* thisGatesTableModel = qobject_cast<ctrl::GatesTableModel*>(model());
+    if(gateTableMimeData != nullptr){
+        QList<ctrl::Gate> gateList(gateTableMimeData->getGateList());
+        for(auto &gate : gateList){
+            thisGatesTableModel->addGate(gate);
         }
     }
 }
 
-void ui::SpectrumListView::mouseDoubleClickEvent(QMouseEvent *event) {
-    QModelIndex index = indexAt(event->pos());
-    if(index.isValid()){
-        ctrl::SpectrumListModel* specModel = qobject_cast<ctrl::SpectrumListModel*>(model());
-        specModel->setActivatedSpectrum(index);
-    }
-
-    ListViewInterfaceItemToolBar::mouseDoubleClickEvent(event);
+void ui::GatesTableView::mouseDoubleClickEvent(QMouseEvent *event) {
+    ui::TableViewInterfaceItemToolBar::mouseDoubleClickEvent(event);
 }
 
-void ui::SpectrumListView::mousePressEvent(QMouseEvent *event) {
-    ListViewInterfaceItemToolBar::mousePressEvent(event); // should be before selectedIndexes() because otherwise selectedIndexes() = 0 always
+void ui::GatesTableView::mousePressEvent(QMouseEvent *event) {
+    ui::TableViewInterfaceItemToolBar::mousePressEvent(event); // should be before selectedIndexes() because otherwise selectedIndexes() = 0 always
 
     if(event->button() == Qt::LeftButton){
         m_ptDragPos = event->pos();
     }
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
-    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
+    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
     if(model()->rowCount() != 0) {
         QModelIndex index = indexAt(event->pos());
         bool isSelected = !(selectedIndexes().isEmpty()) && index.isValid();// selectedIndexes() in last coment
@@ -235,7 +211,7 @@ void ui::SpectrumListView::mousePressEvent(QMouseEvent *event) {
     }
 }
 
-void ui::SpectrumListView::mouseMoveEvent(QMouseEvent *event) {
+void ui::GatesTableView::mouseMoveEvent(QMouseEvent *event) {
     if (event->buttons() & Qt::LeftButton){
         int distance = (event->pos() - m_ptDragPos).manhattanLength();
         if (distance > QApplication::startDragDistance()){
@@ -244,35 +220,35 @@ void ui::SpectrumListView::mouseMoveEvent(QMouseEvent *event) {
     }
 }
 
-void ui::SpectrumListView::dragEnterEvent (QDragEnterEvent *event) {
-    if(event->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType())){
+void ui::GatesTableView::dragEnterEvent (QDragEnterEvent *event) {
+    if(event->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType())){
         event->acceptProposedAction();
     }
 }
 
-void ui::SpectrumListView::dropEvent (QDropEvent *event) {
-    ctrl::SpectrumListModel* thisSpectrumListModel = qobject_cast<ctrl::SpectrumListModel*>(model());
-    if (m_sourceSpectrumListModel == thisSpectrumListModel) {
+void ui::GatesTableView::dropEvent (QDropEvent *event) {
+    ctrl::GatesTableModel* thisGatesTableModel = qobject_cast<ctrl::GatesTableModel*>(model());
+    if (m_sourceGateTableModel == thisGatesTableModel) {
         return;
     }
 
     if (event->proposedAction() == Qt::MoveAction) {
-            event->acceptProposedAction();
+        event->acceptProposedAction();
     } else if (event->proposedAction() == Qt::CopyAction) {
         event->acceptProposedAction();
     } else {
         return;
     }
 
-    const ctrl::SpectrumListMimeData* spectrumListMimeData = dynamic_cast<const ctrl::SpectrumListMimeData*>(event->mimeData());
-    if(spectrumListMimeData != nullptr){
-        QList<ctrl::SpectrumSPM> spectrumList(spectrumListMimeData->getSpectrumList());
-        for(auto &spectrum : spectrumList){
-            thisSpectrumListModel->addSpectrum(spectrum);
+    const ctrl::GateTableMimeData* gateTableMimeData = dynamic_cast<const ctrl::GateTableMimeData*>(event->mimeData());
+    if(gateTableMimeData != nullptr){
+        QList<ctrl::Gate> gateList(gateTableMimeData->getGateList());
+        for(auto &gate : gateList){
+            thisGatesTableModel->addGate(gate);
         }
     }
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
-    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
+    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
     if(model()->rowCount() != 0) {
         bool isSelected = !selectedIndexes().isEmpty();
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, true);
@@ -286,9 +262,9 @@ void ui::SpectrumListView::dropEvent (QDropEvent *event) {
     }
 }
 
-void ui::SpectrumListView::focusInEvent(QFocusEvent *event) {
+void ui::GatesTableView::focusInEvent(QFocusEvent *event) {
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
-    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
+    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
     if(model()->rowCount() != 0) {
         bool isSelected = !selectedIndexes().isEmpty();
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, true);
@@ -300,10 +276,10 @@ void ui::SpectrumListView::focusInEvent(QFocusEvent *event) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, isSelected);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, isSelected);
     }
-    ListViewInterfaceItemToolBar::focusInEvent(event);
+    ui::TableViewInterfaceItemToolBar::focusInEvent(event);
 }
 
-void ui::SpectrumListView::focusOutEvent(QFocusEvent *event) {
+void ui::GatesTableView::focusOutEvent(QFocusEvent *event) {
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
@@ -314,10 +290,10 @@ void ui::SpectrumListView::focusOutEvent(QFocusEvent *event) {
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, false);
-    ListViewInterfaceItemToolBar::focusOutEvent(event);
+    ui::TableViewInterfaceItemToolBar::focusOutEvent(event);
 }
 
-void ui::SpectrumListView::contextMenuEvent(QContextMenuEvent* event) {
+void ui::GatesTableView::contextMenuEvent(QContextMenuEvent* event) {
 
     if(model()->rowCount() != 0){
         bool isSelected = !selectedIndexes().isEmpty();
@@ -333,15 +309,15 @@ void ui::SpectrumListView::contextMenuEvent(QContextMenuEvent* event) {
     else {
         m_contextMenu->setEnabled(false);
     }
-    m_actContextPasteItem->setEnabled(QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
+    m_actContextPasteItem->setEnabled(QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
     m_contextMenu->exec(event->globalPos());
 }
 
-void ui::SpectrumListView::dragMoveEvent (QDragMoveEvent *event) {
+void ui::GatesTableView::dragMoveEvent (QDragMoveEvent *event) {
     event->acceptProposedAction();
 }
 
-void ui::SpectrumListView::startDrag() {
+void ui::GatesTableView::startDrag() {
     const QModelIndexList indexList(selectedIndexes());
     if (indexList.isEmpty()){
         return;
@@ -358,16 +334,16 @@ void ui::SpectrumListView::startDrag() {
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, false);
 
-    const ctrl::SpectrumListModel* specModel = qobject_cast<ctrl::SpectrumListModel*>(model());
-    const QList<ctrl::SpectrumPenStruct> spectrumPenStructList = specModel->getSpecList();
-    QList<ctrl::SpectrumSPM> spectrumList;
+    const ctrl::GatesTableModel* specModel = qobject_cast<ctrl::GatesTableModel*>(model());
+    const QList<ctrl::GatePen> gatePenList = specModel->getGateList();
+    QList<ctrl::Gate> gateList;
     for(auto &index : indexList){
-        spectrumList.push_back(spectrumPenStructList.at(index.row()).spm);
+        gateList.push_back(gatePenList.at(index.row()).gate);
     }
     QDrag* drag = new QDrag(this);
-    ctrl::SpectrumListMimeData* spectrumListMimeData = new ctrl::SpectrumListMimeData();
-    spectrumListMimeData->setSpectrumList(spectrumList);
-    m_sourceSpectrumListModel = qobject_cast<ctrl::SpectrumListModel*>(model());
-    drag->setMimeData(spectrumListMimeData);
+    ctrl::GateTableMimeData* gateTableMimeData = new ctrl::GateTableMimeData();
+    gateTableMimeData->setGateList(gateList);
+    m_sourceGateTableModel = qobject_cast<ctrl::GatesTableModel*>(model());
+    drag->setMimeData(gateTableMimeData);
     drag->exec(Qt::MoveAction);
 }

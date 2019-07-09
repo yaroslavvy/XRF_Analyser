@@ -3,6 +3,7 @@
 
 #include <QVector>
 #include <QDateTime>
+#include <QFile>
 #include "spectrum_attribute_struct.h"
 
 
@@ -11,7 +12,7 @@ namespace ctrl {
     public:
         SpectrumSPM();
 
-        void readFromFile(const QString& fileName);
+        void readFromFile(QFile& file); //QFile& file can not be const, 'cos QFile::readLine() doesn't work;
         void writeToFile(const QString& fileName) const;
 
         const ctrl::SpectrumAttributes& getSpectrumAttributes() const;

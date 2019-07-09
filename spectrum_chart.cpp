@@ -8,6 +8,7 @@
 #include <QTranslator>
 #include <QCursor>
 #include <QItemSelectionModel>
+#include <gates_table_model.h>
 
 ui::SpectrumChart::SpectrumChart(QGraphicsItem* parent)
     : QtCharts::QChart(parent),
@@ -103,7 +104,7 @@ void ui::SpectrumChart::setXMode(ui::AxisXMode mode) {
     }
 
     m_xMode = mode;
-    slotUpdateSpectrums(true);
+    slotUpdateChart(true);
 }
 
 ui::AxisXMode ui::SpectrumChart::getXMode() const {
@@ -141,20 +142,22 @@ void ui::SpectrumChart::setYMode(ui::AxisYMode mode) {
 
     m_yMode = mode;
 
-    slotUpdateSpectrums(true);
+    slotUpdateChart(true);
 }
 
 ui::AxisYMode ui::SpectrumChart::getYMode() const {
     return m_yMode;
 }
 
-void ui::SpectrumChart::slotUpdateSpectrums(bool resizeAxis) {
+void ui::SpectrumChart::slotUpdateChart(bool resizeAxis) {
     removeAllSeries();
-    QList<ctrl::SpectrumPenStruct> tmpSpecLst = m_modelSpec->getSpecList();
+
+    QList<ctrl::SpectrumPenStruct> tmpSpecLst = m_modelSpec->getSpecList();//
 
     for (auto &specPenStruct : tmpSpecLst) {
         addSpectrum(specPenStruct, resizeAxis);
-    }
+    }//TODO: add implementation for gate
+
     m_verticalLineCursor = new QtCharts::QLineSeries;
     m_verticalLineCursor->setPen(QPen(Qt::red, 1, Qt::DashLine));
     m_verticalLineCursor->append(m_posMouse.x(), m_fullViewMinY);
@@ -270,6 +273,10 @@ void ui::SpectrumChart::addSpectrum(const ctrl::SpectrumPenStruct &specPenStruct
     series->attachAxis(m_axisSpecX);
     series->attachAxis(axes(Qt::Vertical).back());
     controlAxisLimits(maxIntensity, minValX, maxValX, resizeAxis);
+}
+
+void ui::SpectrumChart::addGate(const ctrl::GatePen& gatePen, bool resizeAxis) {
+    //TODO: make implementation
 }
 
 void ui::SpectrumChart::setFullSizeSpectrumArea() {
@@ -411,12 +418,22 @@ void ui::SpectrumChart::recoverAxisLimits()
 
 void ui::SpectrumChart::setModelSpectrums(ctrl::SpectrumListModel *model) {
     m_modelSpec = model;
-    slotUpdateSpectrums(true);
-    connect(m_modelSpec, SIGNAL(updateSpectrums(bool)), this, SLOT(slotUpdateSpectrums(bool)));
+    slotUpdateChart(true);
+    connect(m_modelSpec, SIGNAL(updateSpectrums(bool)), this, SLOT(slotUpdateChart(bool)));
+}
+
+void ui::SpectrumChart::setModelGates(ctrl::GatesTableModel* model) {
+    m_modelGate = model;
+    slotUpdateChart(true);
+    connect(m_modelGate, SIGNAL(updateGates(bool)), this, SLOT(slotUpdateChart(bool)));
 }
 
 ctrl::SpectrumListModel* ui::SpectrumChart::getModelSpectrums() const {
     return m_modelSpec;
+}
+
+ctrl::GatesTableModel* ui::SpectrumChart::getModelGates() const {
+    return m_modelGate;
 }
 
 void ui::SpectrumChart::slotCursorMode(int mode){

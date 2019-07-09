@@ -4,8 +4,7 @@
 #include <QException>
 
 namespace ctrl {
-    class Exception : public QException
-    {
+    class Exception : public QException {
     public:
         Exception();
         Exception(const QString& message);
