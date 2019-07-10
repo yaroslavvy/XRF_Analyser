@@ -22,7 +22,7 @@ ui::GatesTableView::GatesTableView(QWidget *parent)
     const QString pathIconMenuDefaultStyle("resources/pictures/menuIcons/defaultStyle/");
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::ExtendedSelection);
-    setEditTriggers(QAbstractItemView::SelectedClicked);
+    setEditTriggers(QAbstractItemView::DoubleClicked);
     setAcceptDrops(true);
 
     m_actContextSelectAllItems = new QAction(tr("Select All Items"), nullptr);
@@ -118,16 +118,23 @@ const ctrl::GatesTableModel* ui::GatesTableView::getSourceGateTableModel() {
 
 void ui::GatesTableView::deselectAll() {
     selectionModel()->clearSelection();
+    QAbstractItemModel* gateModel = model();
+    setModel(nullptr);
+    setModel(gateModel);
 }
 
 void ui::GatesTableView::invertSelection() {
     QItemSelectionModel* spectrumListViewSelectionModel = selectionModel();
-
-    int row = 0;
-    QModelIndex index = model()->index(row++, 0);
-    while (index.isValid()) {
+    QModelIndexList indexList;
+    int rowAmount = model()->rowCount();
+    int columnAmount = model()->columnCount();
+    for (int row = 0; row < rowAmount; ++row) {
+        for (int column = 0; column < columnAmount; ++column) {
+            indexList.push_back(model()->index(row, column));
+        }
+    }
+    for(auto &index : indexList){
         spectrumListViewSelectionModel->select(index, QItemSelectionModel::Toggle);
-        index = model()->index(row++, 0);
     }
 }
 
@@ -140,6 +147,8 @@ void ui::GatesTableView::deleteItem() {
     ctrl::GatesTableModel* gateModel = qobject_cast<ctrl::GatesTableModel*>(model());
     gateModel->removeGate(indexListViewSelection);
     clearSelection();
+    setModel(nullptr);
+    setModel(gateModel);
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
     if(gateModel->rowCount() == 0) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
@@ -159,11 +168,17 @@ void ui::GatesTableView::copyItem() {
     if (indexList.isEmpty()){
         return;
     }
-    const ctrl::GatesTableModel* gateModel = qobject_cast<ctrl::GatesTableModel*>(model());
+    ctrl::GatesTableModel* gateModel = qobject_cast<ctrl::GatesTableModel*>(model());
     const QList<ctrl::GatePen> gatePenList = gateModel->getGateList();
     QList<ctrl::Gate> gateList;
+    QList<int> uniqueRowsList;
     for(auto &index : indexList){
-        gateList.push_back(gatePenList.at(index.row()).gate);
+        uniqueRowsList.push_back(index.row());
+    }
+    std::sort(uniqueRowsList.begin(), uniqueRowsList.end());
+    QList<int>::const_iterator endIterUniqueRowsList = std::unique(uniqueRowsList.begin(), uniqueRowsList.end());
+    for(QList<int>::const_iterator i = uniqueRowsList.begin(); i != endIterUniqueRowsList; ++i) {
+        gateList.push_back(gatePenList.at(*i).gate);
     }
     QClipboard* clipboard = QApplication::clipboard();
     clipboard->clear();
@@ -183,6 +198,8 @@ void ui::GatesTableView::pasteItem() {
             thisGatesTableModel->addGate(gate);
         }
     }
+    setModel(nullptr);
+    setModel(thisGatesTableModel);
 }
 
 void ui::GatesTableView::mouseDoubleClickEvent(QMouseEvent *event) {
@@ -247,6 +264,8 @@ void ui::GatesTableView::dropEvent (QDropEvent *event) {
             thisGatesTableModel->addGate(gate);
         }
     }
+    setModel(nullptr);
+    setModel(thisGatesTableModel);
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
     if(model()->rowCount() != 0) {
@@ -337,8 +356,14 @@ void ui::GatesTableView::startDrag() {
     const ctrl::GatesTableModel* specModel = qobject_cast<ctrl::GatesTableModel*>(model());
     const QList<ctrl::GatePen> gatePenList = specModel->getGateList();
     QList<ctrl::Gate> gateList;
+    QList<int> uniqueRowsList;
     for(auto &index : indexList){
-        gateList.push_back(gatePenList.at(index.row()).gate);
+        uniqueRowsList.push_back(index.row());
+    }
+    std::sort(uniqueRowsList.begin(), uniqueRowsList.end());
+    QList<int>::const_iterator endIterUniqueRowsList = std::unique(uniqueRowsList.begin(), uniqueRowsList.end());
+    for(QList<int>::const_iterator i = uniqueRowsList.begin(); i != endIterUniqueRowsList; ++i) {
+        gateList.push_back(gatePenList.at(*i).gate);
     }
     QDrag* drag = new QDrag(this);
     ctrl::GateTableMimeData* gateTableMimeData = new ctrl::GateTableMimeData();

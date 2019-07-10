@@ -1,4 +1,5 @@
 #include "gates_table_model.h"
+#include "QStandardItem"
 #include "gate.h"
 #include "gate_pen.h"
 #include "spectrum_spm.h"
@@ -21,15 +22,22 @@ void ctrl::GatesTableModel::addGate(const ctrl::Gate& newGate) {
 }
 
 void ctrl::GatesTableModel::removeGate(const QModelIndexList& indexList) {
-    int bias = 0;
+    QList<int> uniqueRowsList;
     for (auto &index : indexList) {
         if(!index.isValid()) {
             return;
         }
-        m_gateList.removeAt(index.row() - bias);
-        removeRow(index.row() - bias);
+        uniqueRowsList.push_back(index.row());
+    }
+    std::sort(uniqueRowsList.begin(), uniqueRowsList.end());
+    QList<int>::const_iterator endIterUniqueRowsList = std::unique(uniqueRowsList.begin(), uniqueRowsList.end());
+    int bias = 0;
+    for(QList<int>::const_iterator i = uniqueRowsList.begin(); i != endIterUniqueRowsList; ++i) {
+        m_gateList.removeAt(*i - bias);
+        removeRow(*i - bias);
         ++bias;
     }
+    emit beginInsertRows(QModelIndex(), rowCount(), rowCount());
     emit dataChanged(QModelIndex(), QModelIndex());
     emit updateGates(false);
 }
@@ -49,6 +57,8 @@ QVariant ctrl::GatesTableModel::data (const QModelIndex& index, int nRole) const
                     return QVariant(m_gateList.at(index.row()).gate.getGateName());
                 case (Qt::EditRole):
                     return QVariant(m_gateList.at(index.row()).gate.getGateName());
+                case (Qt::TextAlignmentRole):
+                    return QVariant(Qt::AlignCenter);
                 default:
                     return QVariant();
             }
@@ -58,6 +68,8 @@ QVariant ctrl::GatesTableModel::data (const QModelIndex& index, int nRole) const
                     return QVariant(m_gateList.at(index.row()).gate.getEnergyLowThreshhold());
                 case (Qt::EditRole):
                     return QVariant(m_gateList.at(index.row()).gate.getEnergyLowThreshhold());
+                case (Qt::TextAlignmentRole):
+                    return QVariant(Qt::AlignCenter);
                 default:
                     return QVariant();
             }
@@ -67,6 +79,8 @@ QVariant ctrl::GatesTableModel::data (const QModelIndex& index, int nRole) const
                     return QVariant(m_gateList.at(index.row()).gate.getEnergyHighThreshhold());
                 case (Qt::EditRole):
                     return QVariant(m_gateList.at(index.row()).gate.getEnergyHighThreshhold());
+                case (Qt::TextAlignmentRole):
+                    return QVariant(Qt::AlignCenter);
                 default:
                     return QVariant();
             }
@@ -76,6 +90,8 @@ QVariant ctrl::GatesTableModel::data (const QModelIndex& index, int nRole) const
                     return QVariant(spectrumAlgorithms::findFullIntegralIntensity(ctrl::SpectrumSPM()/*TODO: load activated spectrum*/, m_gateList.at(index.row()).gate));
                 case (Qt::EditRole):
                     return QVariant(spectrumAlgorithms::findFullIntegralIntensity(ctrl::SpectrumSPM()/*TODO: load activated spectrum*/, m_gateList.at(index.row()).gate));
+                case (Qt::TextAlignmentRole):
+                    return QVariant(Qt::AlignCenter);
                 default:
                     return QVariant();
             }
@@ -96,6 +112,10 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
     if(!index.isValid() && (nRole != Qt::EditRole)) {
         return false;
     }
+    double doubleValue = value.value<double>();
+    if(((nRole == GATE_TABLE_COLUMN::LOW_THRESHHOLD) || (nRole == GATE_TABLE_COLUMN::HIGH_THRESHHOLD)) && (doubleValue < 0)) {
+        doubleValue = 0;
+    }
     GatePen gatePen;
     switch (index.column()) {
         case (GATE_TABLE_COLUMN::GATE_NAME):
@@ -107,14 +127,28 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
             return true;
         case (GATE_TABLE_COLUMN::LOW_THRESHHOLD):
             gatePen = m_gateList.at(index.row());
-            gatePen.gate.setEnergyLowThreshhold(value.value<double>());
+
+            if(doubleValue > data(this->index(index.row(), 2)).toDouble()) {
+                gatePen.gate.setEnergyLowThreshhold(data(this->index(index.row(), 2)).toDouble());
+            }
+            else {
+                gatePen.gate.setEnergyLowThreshhold(doubleValue);
+            }
+
             m_gateList.replace(index.row(), gatePen);
             emit dataChanged(index, index);
             emit updateGates(false);
             return true;
         case (GATE_TABLE_COLUMN::HIGH_THRESHHOLD):
             gatePen = m_gateList.at(index.row());
-            gatePen.gate.setEnergyHighThreshhold(value.value<double>());
+
+            if(doubleValue < data(this->index(index.row(), 1)).toDouble()) {
+                gatePen.gate.setEnergyHighThreshhold(data(this->index(index.row(), 1)).toDouble());
+            }
+            else {
+                gatePen.gate.setEnergyHighThreshhold(doubleValue);
+            }
+
             m_gateList.replace(index.row(), gatePen);
             emit dataChanged(index, index);
             emit updateGates(false);
@@ -124,7 +158,30 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
     }
 }
 
+QVariant ctrl::GatesTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if(role != Qt::DisplayRole) {
+        return QVariant();
+    }
+    switch (orientation) {
+        case (Qt::Horizontal):
+            switch (section) {
+                case(GATE_TABLE_COLUMN::GATE_NAME):
+                    return QVariant("Gate name");
+                case(GATE_TABLE_COLUMN::LOW_THRESHHOLD):
+                    return QVariant("Left limit");
+                case(GATE_TABLE_COLUMN::HIGH_THRESHHOLD):
+                    return QVariant("Right limit");
+                case(GATE_TABLE_COLUMN::FULL_INTEGRAL_INTENSITY):
+                    return QVariant("Intensity");
+                default:
+                    return QVariant();
+            }
+        case (Qt::Vertical):
+            return QVariant(section + 1);
+    }
+}
+
 Qt::ItemFlags ctrl::GatesTableModel::flags(const QModelIndex &index) const {
     Qt::ItemFlags flags = QAbstractTableModel::flags(index);
-        return index.isValid() ? (flags | Qt::ItemIsEditable) : flags;
+        return (index.isValid())&&(index.column() != GATE_TABLE_COLUMN::FULL_INTEGRAL_INTENSITY) ? (flags | Qt::ItemIsEditable) : flags;
 }

@@ -162,3 +162,11 @@ Qt::ItemFlags ctrl::SpectrumListModel::flags(const QModelIndex &index) const {
     Qt::ItemFlags flags = QAbstractListModel::flags(index);
     return index.isValid() ? (flags | Qt::ItemIsEditable) : flags;
 }
+
+double ctrl::SpectrumListModel::getEnergyStepOfActivatedSpectrum() const {
+    return m_specList.at(m_activatedSpectrumIndex.row()).spm.getSpectrumAttributes().energyStepSpectrum_kev;
+}
+
+double ctrl::SpectrumListModel::getEnergyStartofActivatedSpectrum() const {
+    return m_specList.at(m_activatedSpectrumIndex.row()).spm.getSpectrumAttributes().energyStartSpectrum_kev;
+}

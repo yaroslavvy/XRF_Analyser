@@ -45,11 +45,10 @@ ui::MainWindow* srvcSpec::getMainWindow(QWidget* widget) {
     if(parentWgt == nullptr){
         return nullptr;
     }
-    QWidget* previousParentWgt;
+    QWidget* previousParentWgt = nullptr;
     while (parentWgt != nullptr) {
         previousParentWgt = parentWgt;
         parentWgt = parentWgt->parentWidget();
     }
     return qobject_cast<ui::MainWindow*>(previousParentWgt);
 }
-

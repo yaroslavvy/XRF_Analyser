@@ -36,7 +36,7 @@ namespace ui {
 
     public slots:
         void recoverAxisLimits();
-        void slotUpdateChart(bool resizeAxis);//TODO: add implementation for gate
+        void slotUpdateChart(bool resizeAxis);
         void slotCursorMode(int cursorMode);//TODO: enum for cursorMode
         void setAndRepaintMouseCursor(const QPointF &newMousePos);
 

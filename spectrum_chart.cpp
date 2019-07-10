@@ -156,7 +156,13 @@ void ui::SpectrumChart::slotUpdateChart(bool resizeAxis) {
 
     for (auto &specPenStruct : tmpSpecLst) {
         addSpectrum(specPenStruct, resizeAxis);
-    }//TODO: add implementation for gate
+    }
+
+    QList<ctrl::GatePen> tmpGateLst = m_modelGate->getGateList();//
+
+    for (auto &gatePen : tmpGateLst) {
+        addGate(gatePen, resizeAxis);
+    }
 
     m_verticalLineCursor = new QtCharts::QLineSeries;
     m_verticalLineCursor->setPen(QPen(Qt::red, 1, Qt::DashLine));
@@ -276,7 +282,65 @@ void ui::SpectrumChart::addSpectrum(const ctrl::SpectrumPenStruct &specPenStruct
 }
 
 void ui::SpectrumChart::addGate(const ctrl::GatePen& gatePen, bool resizeAxis) {
-    //TODO: make implementation
+    if((gatePen.gate.getEnergyLowThreshhold() > gatePen.gate.getEnergyHighThreshhold()) || (gatePen.gate.getEnergyLowThreshhold() < 0)) {
+        return;
+    }
+
+    QtCharts::QLineSeries* seriesLeft = new QtCharts::QLineSeries();
+    seriesLeft->setPen(gatePen.penForChart);
+
+    QtCharts::QLineSeries* seriesRight = new QtCharts::QLineSeries();
+    seriesRight->setPen(gatePen.penForChart);
+
+    double minValX = 0.0;
+    double maxValX = 0.0;
+
+    double energyStepOfActivatedSpectrum = 0.0;
+    double energyStartOfActivatedSpectrum = 0.0;
+
+    switch (m_xMode) {
+        case ui::AxisXMode::ENERGY_KEV:
+            minValX = gatePen.gate.getEnergyLowThreshhold();
+            maxValX = gatePen.gate.getEnergyHighThreshhold();
+            break;
+        case ui::AxisXMode::CHANNELS:
+            energyStepOfActivatedSpectrum = getModelSpectrums()->getEnergyStepOfActivatedSpectrum();
+            energyStartOfActivatedSpectrum = getModelSpectrums()->getEnergyStartofActivatedSpectrum();
+            minValX = (gatePen.gate.getEnergyLowThreshhold() - energyStartOfActivatedSpectrum) / energyStepOfActivatedSpectrum;
+            maxValX = (gatePen.gate.getEnergyHighThreshhold() - energyStartOfActivatedSpectrum) / energyStepOfActivatedSpectrum;
+            break;
+        case ui::AxisXMode::WAVE_LENGTH_NM:
+            minValX = COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / gatePen.gate.getEnergyLowThreshhold();
+            maxValX = COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / gatePen.gate.getEnergyHighThreshhold();
+            if ((minValX < MIN_POSSIBLE_WAVE_LENGTH_NM) || (maxValX > MAX_POSSIBLE_WAVE_LENGTH_NM)) {
+                return;
+            }
+            break;
+        case ui::AxisXMode::WAVE_LENGTH_A:
+            minValX = COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / gatePen.gate.getEnergyLowThreshhold();
+            maxValX = COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / gatePen.gate.getEnergyHighThreshhold();
+            if ((minValX < MIN_POSSIBLE_WAVE_LENGTH_A) || (maxValX > MAX_POSSIBLE_WAVE_LENGTH_A)) {
+                return;
+            }
+            break;
+    }
+
+    seriesLeft->append(minValX, m_fullViewMinY);
+    seriesLeft->append(minValX, m_fullViewMaxY);
+
+    seriesRight->append(maxValX, m_fullViewMinY);
+    seriesRight->append(maxValX, m_fullViewMaxY);
+
+    addSeries(seriesLeft);
+    addSeries(seriesRight);
+
+    seriesLeft->attachAxis(m_axisSpecX);
+    seriesLeft->attachAxis(axes(Qt::Vertical).back());
+
+    seriesRight->attachAxis(m_axisSpecX);
+    seriesRight->attachAxis(axes(Qt::Vertical).back());
+
+    controlAxisLimits(0, minValX, maxValX, resizeAxis);
 }
 
 void ui::SpectrumChart::setFullSizeSpectrumArea() {

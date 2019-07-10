@@ -20,6 +20,7 @@
 #include <QComboBox>
 #include <stdexcept>
 #include <QDebug>
+#include <QStringLiteral>
 #include <QItemSelectionModel>
 #include <QGroupBox>
 #include "work_area_view.h"
@@ -161,7 +162,7 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
 
 void ui::SingleWindow::slotLoad()
 {
-    const QStringList fileList = QFileDialog::getOpenFileNames(nullptr, tr("Open File"), "resources/spectrums/", "*.spm ;; *.csv");
+    const QStringList fileList = QFileDialog::getOpenFileNames(nullptr, tr("Open File"), "resources/spectrums/", "*.* ;; *.spm ;; *.csv");
     if(fileList.isEmpty()) {
         return;
     }
@@ -225,16 +226,23 @@ void ui::SingleWindow::slotLoad()
             }
 
             if (fileExtension == "csv") {
-                while (!file.atEnd()) {
+                QTextStream in(&file);
+                in.setCodec("UTF-8");
+                while (!in.atEnd()) {
                     ctrl::Gate gate;
                     try {
-                        gate.readFromString(file.readLine());
+                        gate.readFromString(in.readLine());
                     }
                     catch (const ctrl::Exception &ex) {
                         throw ctrl::Exception(fileInfo.fileName() + ex.what());
                     }
+                    if(m_tab->count() == 0) {
+                        slotAddTab();
+                    }
                     m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates()->addGate(gate);
                 }
+                m_tblViewGates->setModel(nullptr);
+                m_tblViewGates->setModel(m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates());
             }
         }
         catch (const ctrl::Exception &ex){
@@ -266,6 +274,7 @@ void ui::SingleWindow::slotAddTab() {
 
     ctrl::GatesTableModel* gateModel = new ctrl::GatesTableModel(chart);
     chart->setModelGates(gateModel);
+    m_tblViewGates->setModel(nullptr);
     m_tblViewGates->setModel(gateModel);
 
     view->setChart(chart);
@@ -296,5 +305,6 @@ void ui::SingleWindow::slotRemoveTab() {
 
 void ui::SingleWindow::slotUpdateViews(){
     m_lstViewSpectrums->setModel(m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelSpectrums());
+    m_tblViewGates->setModel(nullptr);
     m_tblViewGates->setModel(m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates());
 }

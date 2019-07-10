@@ -14,6 +14,7 @@
 #include <QDebug>
 #include "bar_clock.h"
 #include "list_view_interface_item_tool_bar.h"
+#include "table_view_interface_item_tool_bar.h"
 
 ui::MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
@@ -259,65 +260,111 @@ void ui::MainWindow::slotSetActiveSubWindow (QWidget* pwgt) {
 }
 
 void ui::MainWindow::selectAll() {
-    ui::ListViewInterfaceItemToolBar* activeView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeView != nullptr){
-        activeView->selectAll();
+    ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeListView != nullptr){
+        activeListView->selectAll();
+        return;
+    }
+    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeTableView != nullptr){
+        activeTableView->selectAll();
+        return;
     }
 }
 
 void ui::MainWindow::deselectAll() {
-    ui::ListViewInterfaceItemToolBar* activeView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeView != nullptr){
-        activeView->deselectAll();
+    ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeListView != nullptr){
+        activeListView->deselectAll();
+    }
+    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeTableView != nullptr){
+        activeTableView->deselectAll();
+        return;
     }
 }
 
 void ui::MainWindow::invertSelection() {
-    ui::ListViewInterfaceItemToolBar* activeView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeView != nullptr){
-        activeView->invertSelection();
+    ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeListView != nullptr){
+        activeListView->invertSelection();
+    }
+    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeTableView != nullptr){
+        activeTableView->invertSelection();
+        return;
     }
 }
 
 void ui::MainWindow::showHideItems() {
-    ui::ListViewInterfaceItemToolBar* activeView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeView != nullptr){
-        activeView->showHideItems();
+    ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeListView != nullptr){
+        activeListView->showHideItems();
+    }
+    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeTableView != nullptr){
+        activeTableView->showHideItems();
+        return;
     }
 }
 
 void ui::MainWindow::itemPresentationSettings() {
-    ui::ListViewInterfaceItemToolBar* activeView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeView != nullptr){
-        activeView->itemPresentationSettings();
+    ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeListView != nullptr){
+        activeListView->itemPresentationSettings();
+    }
+    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeTableView != nullptr){
+        activeTableView->itemPresentationSettings();
+        return;
     }
 }
 
 void ui::MainWindow::itemInformation() {
-    ui::ListViewInterfaceItemToolBar* activeView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeView != nullptr){
-        activeView->itemInformation();
+    ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeListView != nullptr){
+        activeListView->itemInformation();
+    }
+    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeTableView != nullptr){
+        activeTableView->itemInformation();
+        return;
     }
 }
 
 void ui::MainWindow::deleteItem() {
-    ui::ListViewInterfaceItemToolBar* activeView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeView != nullptr){
-        activeView->deleteItem();
+    ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeListView != nullptr){
+        activeListView->deleteItem();
+    }
+    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeTableView != nullptr){
+        activeTableView->deleteItem();
+        return;
     }
 }
 
 void ui::MainWindow::copyItem() {
-    ui::ListViewInterfaceItemToolBar* activeView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeView != nullptr){
-        activeView->copyItem();
+    ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeListView != nullptr){
+        activeListView->copyItem();
+    }
+    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeTableView != nullptr){
+        activeTableView->copyItem();
+        return;
     }
 }
 
 void ui::MainWindow::pasteItem() {
-    ui::ListViewInterfaceItemToolBar* activeView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeView != nullptr) {
-            activeView->pasteItem();
+    ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeListView != nullptr) {
+            activeListView->pasteItem();
+    }
+    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
+    if (activeTableView != nullptr){
+        activeTableView->pasteItem();
+        return;
     }
 }
 

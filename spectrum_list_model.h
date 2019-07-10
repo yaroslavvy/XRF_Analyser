@@ -22,6 +22,8 @@ namespace ctrl {
         bool setData(const QModelIndex& index, const QVariant& value, int nRole) override;
         Qt::ItemFlags flags(const QModelIndex &index) const override;
         const QList<SpectrumPenStruct>& getSpecList() const;
+        double getEnergyStepOfActivatedSpectrum() const;
+        double getEnergyStartofActivatedSpectrum() const;
 
     signals:
         void updateSpectrums(bool resizeAxis);

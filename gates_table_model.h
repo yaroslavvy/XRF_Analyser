@@ -2,6 +2,7 @@
 #define QUALITATIVE_ANALYSIS_GATES_TABLE_MODEL_H
 
 #include <QAbstractTableModel>
+#include <QModelIndex>
 #include "gate.h"
 #include "gate_pen.h"
 
@@ -29,6 +30,7 @@ namespace ctrl {
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
         int columnCount(const QModelIndex& parent = QModelIndex()) const override;
         bool setData(const QModelIndex& index, const QVariant& value, int nRole) override;
+        QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
         Qt::ItemFlags flags(const QModelIndex &index) const override;
 
     signals:
