@@ -7,9 +7,16 @@
 #include <QDrag>
 #include <QMouseEvent>
 #include <QDragEnterEvent>
+#include <QItemSelectionModel>
+#include <QItemSelection>
+#include <QModelIndexList>
+#include <QAbstractItemModel>
+#include <QDebug>
+#include <QFont>
 #include "gates_table_view.h"
 #include "gates_table_model.h"
 #include "gate_table_mime_data.h"
+#include "spectrum_spm.h"
 #include "main_window.h"
 #include "service.h"
 
@@ -25,7 +32,9 @@ ui::GatesTableView::GatesTableView(QWidget *parent)
     setEditTriggers(QAbstractItemView::DoubleClicked);
     setAcceptDrops(true);
 
-    m_actContextSelectAllItems = new QAction(tr("Select All Items"), nullptr);
+    m_contextMenu = new QMenu(tr("Item operations"));
+
+    m_actContextSelectAllItems = new QAction(tr("Select All Items"), m_contextMenu);
     m_actContextSelectAllItems->setText(tr("&Select All Items"));
     m_actContextSelectAllItems->setShortcut(QKeySequence("CTRL+A"));
     m_actContextSelectAllItems->setToolTip(tr("Select all items in the list"));
@@ -33,7 +42,7 @@ ui::GatesTableView::GatesTableView(QWidget *parent)
     m_actContextSelectAllItems->setIcon(QPixmap(pathIconMenuDefaultStyle + "selectAll52.png"));
     connect(m_actContextSelectAllItems, SIGNAL(triggered()), this, SLOT(selectAll()));
 
-    m_actContextDeselectAllItems = new QAction(tr("Deselect All"), nullptr);
+    m_actContextDeselectAllItems = new QAction(tr("Deselect All"), m_contextMenu);
     m_actContextDeselectAllItems->setText(tr("&Deselect All"));
     m_actContextDeselectAllItems->setShortcut(QKeySequence("CTRL+D"));
     m_actContextDeselectAllItems->setToolTip(tr("Deselect all items in the list"));
@@ -41,7 +50,7 @@ ui::GatesTableView::GatesTableView(QWidget *parent)
     m_actContextDeselectAllItems->setIcon(QPixmap(pathIconMenuDefaultStyle + "deselectAll52.png"));
     connect(m_actContextDeselectAllItems, SIGNAL(triggered()), this, SLOT(deselectAll()));
 
-    m_actContexInvertSelection = new QAction(tr("Invert Selection"), nullptr);
+    m_actContexInvertSelection = new QAction(tr("Invert Selection"), m_contextMenu);
     m_actContexInvertSelection->setText(tr("&Invert Selection"));
     m_actContexInvertSelection->setShortcut(QKeySequence("CTRL+I"));
     m_actContexInvertSelection->setToolTip(tr("Invert selection of items in the list"));
@@ -49,23 +58,7 @@ ui::GatesTableView::GatesTableView(QWidget *parent)
     m_actContexInvertSelection->setIcon(QPixmap(pathIconMenuDefaultStyle + "invertSelection52.png"));
     connect(m_actContexInvertSelection, SIGNAL(triggered()), this, SLOT(invertSelection()));
 
-    m_actContextShowHideItems = new QAction(tr("Show/Hide Spectrum"), nullptr);
-    m_actContextShowHideItems->setText(tr("S&how/Hide Spectrum"));
-    m_actContextShowHideItems->setShortcut(QKeySequence("SPACE"));
-    m_actContextShowHideItems->setToolTip(tr("Show or hide item in the chart view and list view"));
-    m_actContextShowHideItems->setWhatsThis(tr("Show or hide item in the chart view and list view"));
-    m_actContextShowHideItems->setIcon(QPixmap(pathIconMenuDefaultStyle + "showHideSpectrum52.png"));
-    connect(m_actContextShowHideItems, SIGNAL(triggered()), this, SLOT(showHideItems()));
-
-    m_actContextItemPresentationSettings = new QAction(tr("Item Presentation Settings"), nullptr);
-    m_actContextItemPresentationSettings->setText(tr("It&em Presentation Settings"));
-    m_actContextItemPresentationSettings->setShortcut(QKeySequence("CTRL+E"));
-    m_actContextItemPresentationSettings->setToolTip(tr("Presentation Settings of the selected item"));
-    m_actContextItemPresentationSettings->setWhatsThis(tr("Presentation Settings of the selected item"));
-    m_actContextItemPresentationSettings->setIcon(QPixmap(pathIconMenuDefaultStyle + "spectrumSettings52.png"));
-    connect(m_actContextItemPresentationSettings, SIGNAL(triggered()), this, SLOT(itemPresentationSettings()));
-
-    m_actContextItemInformation = new QAction(tr("Item Information"), nullptr);
+    m_actContextItemInformation = new QAction(tr("Item Information"), m_contextMenu);
     m_actContextItemInformation->setText(tr("Item Infor&mation"));
     m_actContextItemInformation->setShortcut(QKeySequence("CTRL+M"));
     m_actContextItemInformation->setToolTip(tr("Information of the selected item"));
@@ -73,7 +66,7 @@ ui::GatesTableView::GatesTableView(QWidget *parent)
     m_actContextItemInformation->setIcon(QPixmap(pathIconMenuDefaultStyle + "spectrumInformation52.png"));
     connect(m_actContextItemInformation, SIGNAL(triggered()), this, SLOT(itemInformation()));
 
-    m_actContextDeleteItem = new QAction(tr("Delete Item"), nullptr);
+    m_actContextDeleteItem = new QAction(tr("Delete Item"), m_contextMenu);
     m_actContextDeleteItem->setText(tr("Delete Item"));
     m_actContextDeleteItem->setShortcut(QKeySequence("DELETE"));
     m_actContextDeleteItem->setToolTip(tr("Delete selected items"));
@@ -81,7 +74,7 @@ ui::GatesTableView::GatesTableView(QWidget *parent)
     m_actContextDeleteItem->setIcon(QPixmap(pathIconMenuDefaultStyle + "delete52.png"));
     connect(m_actContextDeleteItem, SIGNAL(triggered()), this, SLOT(deleteItem()));
 
-    m_actContextCopyItem = new QAction(tr("Copy Item"), nullptr);
+    m_actContextCopyItem = new QAction(tr("Copy Item"), m_contextMenu);
     m_actContextCopyItem->setText(tr("Copy Item"));
     m_actContextCopyItem->setShortcut(QKeySequence("CTRL+C"));
     m_actContextCopyItem->setToolTip(tr("Copy Item"));
@@ -89,7 +82,7 @@ ui::GatesTableView::GatesTableView(QWidget *parent)
     m_actContextCopyItem->setIcon(QPixmap(pathIconMenuDefaultStyle + "copy52.png"));
     connect(m_actContextCopyItem, SIGNAL(triggered()), this, SLOT(copyItem()));
 
-    m_actContextPasteItem = new QAction(tr("Paste Item"), nullptr);
+    m_actContextPasteItem = new QAction(tr("Paste Item"), m_contextMenu);
     m_actContextPasteItem->setText(tr("Paste Item"));
     m_actContextPasteItem->setShortcut(QKeySequence("CTRL+V"));
     m_actContextPasteItem->setToolTip(tr("Paste item"));
@@ -97,15 +90,12 @@ ui::GatesTableView::GatesTableView(QWidget *parent)
     m_actContextPasteItem->setIcon(QPixmap(pathIconMenuDefaultStyle + "paste52.png"));
     connect(m_actContextPasteItem, SIGNAL(triggered()), this, SLOT(pasteItem()));
 
-    m_contextMenu = new QMenu(tr("Item operations"));
     m_contextMenu->addAction(m_actContextSelectAllItems);
     m_contextMenu->addAction(m_actContextDeselectAllItems);
     m_contextMenu->addAction(m_actContexInvertSelection);
     m_contextMenu->addAction(m_actContextDeleteItem);
     m_contextMenu->addSeparator();
-    m_contextMenu->addAction(m_actContextShowHideItems);
     m_contextMenu->addSeparator();
-    m_contextMenu->addAction(m_actContextItemPresentationSettings);
     m_contextMenu->addAction(m_actContextItemInformation);
     m_contextMenu->addSeparator();
     m_contextMenu->addAction(m_actContextCopyItem);
@@ -116,39 +106,42 @@ const ctrl::GatesTableModel* ui::GatesTableView::getSourceGateTableModel() {
     return m_sourceGateTableModel;
 }
 
+void ui::GatesTableView::setModel(QAbstractItemModel* model) {
+    ui::TableViewInterfaceItemToolBar::setModel(model);
+    if(model != nullptr) {
+        QFont newFont(font());
+        newFont.setPointSize(7);
+        setFont(newFont);
+        setColumnWidth(0, 75);
+        setColumnWidth(1, 65);
+        setColumnWidth(2, 65);
+        setColumnWidth(3, 65);
+    }
+}
+
 void ui::GatesTableView::deselectAll() {
     selectionModel()->clearSelection();
-    QAbstractItemModel* gateModel = model();
-    setModel(nullptr);
-    setModel(gateModel);
 }
 
 void ui::GatesTableView::invertSelection() {
     QItemSelectionModel* spectrumListViewSelectionModel = selectionModel();
-    QModelIndexList indexList;
-    int rowAmount = model()->rowCount();
-    int columnAmount = model()->columnCount();
-    for (int row = 0; row < rowAmount; ++row) {
-        for (int column = 0; column < columnAmount; ++column) {
-            indexList.push_back(model()->index(row, column));
-        }
-    }
-    for(auto &index : indexList){
-        spectrumListViewSelectionModel->select(index, QItemSelectionModel::Toggle);
-    }
+    QItemSelection itemSelection(spectrumListViewSelectionModel->selection());
+    selectAll();
+    spectrumListViewSelectionModel->select(itemSelection, QItemSelectionModel::Deselect);
 }
 
-void ui::GatesTableView::showHideItems() {}
-void ui::GatesTableView::itemPresentationSettings() {}
 void ui::GatesTableView::itemInformation() {}
 
 void ui::GatesTableView::deleteItem() {
-    QModelIndexList indexListViewSelection = selectedIndexes();
+    QItemSelectionModel* itemSelectionModel = selectionModel();
+    QModelIndexList selectedRows (itemSelectionModel->selectedRows());
     ctrl::GatesTableModel* gateModel = qobject_cast<ctrl::GatesTableModel*>(model());
-    gateModel->removeGate(indexListViewSelection);
+    gateModel->removeGate(selectedRows);
     clearSelection();
     setModel(nullptr);
     setModel(gateModel);
+    setSelectionModel(itemSelectionModel);
+
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
     if(gateModel->rowCount() == 0) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
@@ -198,8 +191,14 @@ void ui::GatesTableView::pasteItem() {
             thisGatesTableModel->addGate(gate);
         }
     }
+    QItemSelectionModel* itemSelectionModel = selectionModel();
     setModel(nullptr);
     setModel(thisGatesTableModel);
+    setSelectionModel(itemSelectionModel);
+}
+
+void slotSetActivatedSpectrum(const ctrl::SpectrumSPM &activatedSpectrum) {
+
 }
 
 void ui::GatesTableView::mouseDoubleClickEvent(QMouseEvent *event) {
@@ -220,8 +219,8 @@ void ui::GatesTableView::mousePressEvent(QMouseEvent *event) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, true);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, true);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, true);
-        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SHOW_HIDE_ITEMS, isSelected);
-        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_PRESENTATION_SETTINGS, isSelected);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SHOW_HIDE_ITEMS, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_PRESENTATION_SETTINGS, false);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_INFORMATION, isSelected);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, isSelected);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, isSelected);
@@ -264,8 +263,12 @@ void ui::GatesTableView::dropEvent (QDropEvent *event) {
             thisGatesTableModel->addGate(gate);
         }
     }
+    QItemSelectionModel* itemSelectionModel = selectionModel();
     setModel(nullptr);
     setModel(thisGatesTableModel);
+    setSelectionModel(itemSelectionModel);
+
+
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
     if(model()->rowCount() != 0) {
@@ -273,8 +276,8 @@ void ui::GatesTableView::dropEvent (QDropEvent *event) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, true);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, true);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, true);
-        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SHOW_HIDE_ITEMS, isSelected);
-        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_PRESENTATION_SETTINGS, isSelected);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SHOW_HIDE_ITEMS, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_PRESENTATION_SETTINGS, false);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_INFORMATION, isSelected);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, isSelected);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, isSelected);
@@ -289,8 +292,8 @@ void ui::GatesTableView::focusInEvent(QFocusEvent *event) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, true);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, true);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, true);
-        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SHOW_HIDE_ITEMS, isSelected);
-        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_PRESENTATION_SETTINGS, isSelected);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SHOW_HIDE_ITEMS, false);
+        mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_PRESENTATION_SETTINGS, false);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_INFORMATION, isSelected);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, isSelected);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, isSelected);
@@ -319,8 +322,6 @@ void ui::GatesTableView::contextMenuEvent(QContextMenuEvent* event) {
         m_actContextSelectAllItems->setEnabled(true);
         m_actContextDeselectAllItems->setEnabled(true);
         m_actContexInvertSelection->setEnabled(true);
-        m_actContextShowHideItems->setEnabled(isSelected);
-        m_actContextItemPresentationSettings->setEnabled(isSelected);
         m_actContextItemInformation->setEnabled(isSelected);
         m_actContextDeleteItem->setEnabled(isSelected);
         m_actContextCopyItem->setEnabled(isSelected);

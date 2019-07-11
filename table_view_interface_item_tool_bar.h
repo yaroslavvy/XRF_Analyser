@@ -14,8 +14,6 @@ namespace ui {
     public slots:
         virtual void deselectAll() = 0;
         virtual void invertSelection() = 0;
-        virtual void showHideItems()  = 0;
-        virtual void itemPresentationSettings() = 0;
         virtual void itemInformation() = 0;
         virtual void deleteItem() = 0;
         virtual void copyItem() = 0;

@@ -9,6 +9,8 @@
 #include "spectrum_chart_axis_modes.h"
 #include "gate_pen.h"
 
+class QItemSelectionModel;
+
 namespace ctrl {
     class GatesTableModel;
 }
@@ -22,23 +24,28 @@ namespace ui {
         SpectrumChart(QGraphicsItem* parent = nullptr);
         void addSpectrum(const ctrl::SpectrumPenStruct& specPenStruct, bool resizeAxis = true);
         void addGate(const ctrl::GatePen& gatePen, bool resizeAxis = false);
-        void setModelSpectrums(ctrl::SpectrumListModel* model);
-        void setModelGates(ctrl::GatesTableModel* model);
         void setFullSizeSpectrumArea();
 
         ctrl::SpectrumListModel* getModelSpectrums() const;
         ctrl::GatesTableModel* getModelGates() const;
+        QItemSelectionModel* getSelectionModelSpectrums() const;
+        QItemSelectionModel* getSelectionModelGates() const;
 
         void setXMode(AxisXMode);
         ui::AxisXMode getXMode() const;
         void setYMode(AxisYMode);
         ui::AxisYMode getYMode() const;
 
+    signals:
+        void activatedSpectrum(const ctrl::SpectrumSPM);
+
     public slots:
         void recoverAxisLimits();
         void slotUpdateChart(bool resizeAxis);
+        void slotUpdateChartWithoutResizeAxis();
         void slotCursorMode(int cursorMode);//TODO: enum for cursorMode
         void setAndRepaintMouseCursor(const QPointF &newMousePos);
+        void setActivatedSpectrum(const ctrl::SpectrumSPM);
 
     protected:
         void wheelEvent(QGraphicsSceneWheelEvent* event) override;
@@ -59,17 +66,20 @@ namespace ui {
 
         ctrl::SpectrumListModel* m_modelSpec;
         ctrl::GatesTableModel* m_modelGate;
+        QItemSelectionModel* m_selectionModelSpec;
+        QItemSelectionModel* m_selectionModelGate;
 
         AxisXMode m_xMode;
         AxisYMode m_yMode;
 
         int m_modeCursor;
-        QPointF m_posMouse;
 
         double m_fullViewMinX;
         double m_fullViewMaxX;
         double m_fullViewMinY;
         double m_fullViewMaxY;
+
+        QPointF mousePos;
 
         QtCharts::QLineSeries* m_verticalLineCursor;
         QtCharts::QLineSeries* m_horizontalLineCursor;

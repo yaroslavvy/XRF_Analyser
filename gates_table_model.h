@@ -5,7 +5,9 @@
 #include <QModelIndex>
 #include "gate.h"
 #include "gate_pen.h"
+#include "spectrum_spm.h"
 
+class QItemSelection;
 
 namespace ctrl {
 
@@ -15,6 +17,7 @@ namespace ctrl {
         HIGH_THRESHHOLD,
         FULL_INTEGRAL_INTENSITY
     };
+
     class GatesTableModel : public QAbstractTableModel {
 
         Q_OBJECT
@@ -23,7 +26,7 @@ namespace ctrl {
         GatesTableModel(QObject* parent = nullptr);
 
         void addGate(const ctrl::Gate& newGate);
-        void removeGate(const QModelIndexList& indexList);
+        void removeGate(const QModelIndexList& selectedRows);
         const QList<ctrl::GatePen>& getGateList() const;
 
         QVariant data (const QModelIndex& index, int nRole = Qt::DisplayRole) const override;
@@ -36,8 +39,13 @@ namespace ctrl {
     signals:
         void updateGates(bool resizeAxis);
 
+    public slots:
+        void slotSetActivatedSpectrum(const ctrl::SpectrumSPM);
+
     private:
         QList<GatePen> m_gateList;
+
+        ctrl::SpectrumSPM m_activeSpectrum;
 
         const int DEFAULT_WIDTH_LINE_FOR_PAINTING_GATES = 1;
     };

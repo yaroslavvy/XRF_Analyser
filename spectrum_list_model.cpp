@@ -33,6 +33,7 @@ void ctrl::SpectrumListModel::addSpectrum(const SpectrumSPM& newSpectrum) {
     emit dataChanged(QModelIndex(), QModelIndex());
     emit updateSpectrums(true);
     m_activatedSpectrumIndex = index((m_specList.size() - 1), 0);
+    emit activatedSpectrum(getActiveSpectrum());
 }
 
 void ctrl::SpectrumListModel::removeSpectrum(const QModelIndexList& indexList) {
@@ -56,6 +57,7 @@ void ctrl::SpectrumListModel::removeSpectrum(const QModelIndexList& indexList) {
     }
     emit dataChanged(QModelIndex(), QModelIndex());
     emit updateSpectrums(false);
+    emit activatedSpectrum(getActiveSpectrum());
 }
 
 void ctrl::SpectrumListModel::setActivatedSpectrum(const QModelIndex& index){
@@ -81,6 +83,7 @@ void ctrl::SpectrumListModel::setActivatedSpectrum(const QModelIndex& index){
     emit dataChanged(QModelIndex(), QModelIndex());
     emit updateSpectrums(false);
     m_activatedSpectrumIndex = index;
+    emit activatedSpectrum(getActiveSpectrum());
 }
 
 void ctrl::SpectrumListModel::changeVisibilitySpectrum(const QModelIndex& index) {
@@ -169,4 +172,14 @@ double ctrl::SpectrumListModel::getEnergyStepOfActivatedSpectrum() const {
 
 double ctrl::SpectrumListModel::getEnergyStartofActivatedSpectrum() const {
     return m_specList.at(m_activatedSpectrumIndex.row()).spm.getSpectrumAttributes().energyStartSpectrum_kev;
+}
+
+const ctrl::SpectrumSPM ctrl::SpectrumListModel::getActiveSpectrum() const {
+    if(m_activatedSpectrumIndex.isValid()) {
+        return m_specList.at(m_activatedSpectrumIndex.row()).spm;
+    }
+    else {
+        return SpectrumSPM();
+    }
+
 }

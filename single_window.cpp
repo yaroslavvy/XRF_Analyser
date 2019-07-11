@@ -23,6 +23,7 @@
 #include <QStringLiteral>
 #include <QItemSelectionModel>
 #include <QGroupBox>
+#include <QModelIndexList>
 #include "work_area_view.h"
 #include "exception.h"
 #include "spectrum_list_model.h"
@@ -133,9 +134,6 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     QGroupBox* spectrumListGroupBox = new QGroupBox;
     spectrumListGroupBox->setLayout(vbLayoutSpectrumListView);
 
-    QVBoxLayout* vbLayoutSpectrumListGatesView = new QVBoxLayout;
-    vbLayoutSpectrumListGatesView->addWidget(spectrumListGroupBox);
-
     QVBoxLayout* vbLayoutGatesListView = new QVBoxLayout;
     vbLayoutGatesListView->addWidget(gatesLabelView);
     vbLayoutGatesListView->addWidget(m_tblViewGates);
@@ -144,10 +142,8 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     QGroupBox* gatesListGroupBox = new QGroupBox;
     gatesListGroupBox->setLayout(vbLayoutGatesListView);
 
-    vbLayoutSpectrumListGatesView->addWidget(gatesListGroupBox);
-
-    vbLayoutSpectrumListGatesView->setMargin(0);
-    vSpl2->setLayout(vbLayoutSpectrumListGatesView);
+    vSpl2->addWidget(spectrumListGroupBox);
+    vSpl2->addWidget(gatesListGroupBox);
 
     hSpl->addWidget(vSpl1);
     hSpl->addWidget(vSpl2);
@@ -241,9 +237,8 @@ void ui::SingleWindow::slotLoad()
                     }
                     m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates()->addGate(gate);
                 }
-                m_tblViewGates->setModel(nullptr);
-                m_tblViewGates->setModel(m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates());
             }
+
         }
         catch (const ctrl::Exception &ex){
             QMessageBox::critical(nullptr, tr("Error!"), tr("Error of the file reading! ") + QString(ex.what()), QMessageBox::Cancel);
@@ -254,6 +249,7 @@ void ui::SingleWindow::slotLoad()
             return;
         }
     }
+    slotUpdateViews();
 }
 
 void ui::SingleWindow::slotSave() {
@@ -268,14 +264,13 @@ void ui::SingleWindow::slotAddTab() {
     WorkAreaView* view = new WorkAreaView;
     SpectrumChart* chart = new SpectrumChart;
 
-    ctrl::SpectrumListModel* specModel = new ctrl::SpectrumListModel(chart);
-    chart->setModelSpectrums(specModel);
-    m_lstViewSpectrums->setModel(specModel);
+    m_lstViewSpectrums->setModel(chart->getModelSpectrums());
+    m_lstViewSpectrums->setSelectionModel(chart->getSelectionModelSpectrums());
 
-    ctrl::GatesTableModel* gateModel = new ctrl::GatesTableModel(chart);
-    chart->setModelGates(gateModel);
     m_tblViewGates->setModel(nullptr);
-    m_tblViewGates->setModel(gateModel);
+    m_tblViewGates->setModel(chart->getModelGates());
+    m_tblViewGates->setSelectionModel(chart->getSelectionModelGates());
+    m_tblViewGates->setRowHeight(0, 10);
 
     view->setChart(chart);
     m_tab->addTab(view, tr("New Tab"));
@@ -304,7 +299,12 @@ void ui::SingleWindow::slotRemoveTab() {
 }
 
 void ui::SingleWindow::slotUpdateViews(){
-    m_lstViewSpectrums->setModel(m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelSpectrums());
+    ui::SpectrumChart* chart(m_tab->getCurrentWorkAreaView()->getSpectrumChart());
+
+    m_lstViewSpectrums->setModel(chart->getModelSpectrums());
+    m_lstViewSpectrums->setSelectionModel(chart->getSelectionModelSpectrums());
+
     m_tblViewGates->setModel(nullptr);
-    m_tblViewGates->setModel(m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates());
+    m_tblViewGates->setModel(chart->getModelGates());
+    m_tblViewGates->setSelectionModel(chart->getSelectionModelGates());
 }

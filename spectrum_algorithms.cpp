@@ -3,5 +3,10 @@
 #include "gate.h"
 
 double spectrumAlgorithms::findFullIntegralIntensity(const ctrl::SpectrumSPM &spectrum, const ctrl::Gate &gate) {
-    return 0; //TODO: make algorithm
+    if(spectrum.getSpectrumAttributes().intensities.isEmpty()) {
+        return 0.0;
+    }
+    else {
+        return 1.0;//TODO: make algorithm implimentation!
+    }
 }

@@ -301,22 +301,12 @@ void ui::MainWindow::showHideItems() {
     if (activeListView != nullptr){
         activeListView->showHideItems();
     }
-    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeTableView != nullptr){
-        activeTableView->showHideItems();
-        return;
-    }
 }
 
 void ui::MainWindow::itemPresentationSettings() {
     ui::ListViewInterfaceItemToolBar* activeListView = qobject_cast<ui::ListViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
     if (activeListView != nullptr){
         activeListView->itemPresentationSettings();
-    }
-    ui::TableViewInterfaceItemToolBar* activeTableView = qobject_cast<ui::TableViewInterfaceItemToolBar*>(m_pma->activeSubWindow()->focusWidget());
-    if (activeTableView != nullptr){
-        activeTableView->itemPresentationSettings();
-        return;
     }
 }
 

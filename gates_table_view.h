@@ -13,6 +13,7 @@ class QAction;
 
 namespace ctrl {
     class GatesTableModel;
+    class SpectrumSPM;
 }
 
 namespace ui {
@@ -23,16 +24,16 @@ namespace ui {
     public:
         GatesTableView(QWidget *parent = nullptr);
         static const ctrl::GatesTableModel* getSourceGateTableModel();
+        void setModel(QAbstractItemModel* model) override;
 
     public slots:
         void deselectAll() override;
         void invertSelection() override;
-        void showHideItems() override;
-        void itemPresentationSettings() override;
         void itemInformation() override;
         void deleteItem() override;
         void copyItem() override;
         void pasteItem() override;
+
 
     protected:
         void mouseDoubleClickEvent(QMouseEvent *event) override;
@@ -57,8 +58,6 @@ namespace ui {
         QAction* m_actContextSelectAllItems;
         QAction* m_actContextDeselectAllItems;
         QAction* m_actContexInvertSelection;
-        QAction* m_actContextShowHideItems;
-        QAction* m_actContextItemPresentationSettings;
         QAction* m_actContextItemInformation;
         QAction* m_actContextDeleteItem;
         QAction* m_actContextCopyItem;

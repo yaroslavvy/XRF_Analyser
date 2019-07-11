@@ -11,8 +11,7 @@ namespace ctrl {
         void readFromString(const QString& line);
         void writeToString(const QString& line) const;
 
-        void setEnergyLowThreshhold(double energyLowThreshhold);
-        void setEnergyHighThreshhold(double energyHighThreshhold);
+        void setEnergyThreshholds(double energyLowThreshhold, double energyHighThreshhold);
 
         double getEnergyLowThreshhold() const;
         double getEnergyHighThreshhold() const;

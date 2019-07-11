@@ -1,8 +1,8 @@
 #include "gates_table_model.h"
-#include "QStandardItem"
+#include <QStandardItem>
+#include <QItemSelection>
 #include "gate.h"
 #include "gate_pen.h"
-#include "spectrum_spm.h"
 #include "spectrum_algorithms.h"
 
 ctrl::GatesTableModel::GatesTableModel(QObject* parent)
@@ -17,28 +17,17 @@ void ctrl::GatesTableModel::addGate(const ctrl::Gate& newGate) {
     gatePen.penForChart.setStyle(Qt::DashLine);
     gatePen.gate = newGate;
     m_gateList.push_back(gatePen);
-    emit dataChanged(QModelIndex(), QModelIndex());
     emit updateGates(false);
 }
 
-void ctrl::GatesTableModel::removeGate(const QModelIndexList& indexList) {
-    QList<int> uniqueRowsList;
-    for (auto &index : indexList) {
-        if(!index.isValid()) {
-            return;
-        }
-        uniqueRowsList.push_back(index.row());
-    }
-    std::sort(uniqueRowsList.begin(), uniqueRowsList.end());
-    QList<int>::const_iterator endIterUniqueRowsList = std::unique(uniqueRowsList.begin(), uniqueRowsList.end());
+void ctrl::GatesTableModel::removeGate(const QModelIndexList& selectedRows) {
     int bias = 0;
-    for(QList<int>::const_iterator i = uniqueRowsList.begin(); i != endIterUniqueRowsList; ++i) {
-        m_gateList.removeAt(*i - bias);
-        removeRow(*i - bias);
+    for(auto &index : selectedRows) {
+        m_gateList.removeAt(index.row() - bias);
+        removeRow(index.row() - bias);
         ++bias;
     }
-    emit beginInsertRows(QModelIndex(), rowCount(), rowCount());
-    emit dataChanged(QModelIndex(), QModelIndex());
+    emit dataChanged(index(0, 0), index(rowCount() - 1, columnCount() - 1));
     emit updateGates(false);
 }
 
@@ -87,9 +76,9 @@ QVariant ctrl::GatesTableModel::data (const QModelIndex& index, int nRole) const
         case (GATE_TABLE_COLUMN::FULL_INTEGRAL_INTENSITY):
             switch (nRole) {
                 case (Qt::DisplayRole):
-                    return QVariant(spectrumAlgorithms::findFullIntegralIntensity(ctrl::SpectrumSPM()/*TODO: load activated spectrum*/, m_gateList.at(index.row()).gate));
+                    return QVariant(spectrumAlgorithms::findFullIntegralIntensity(m_activeSpectrum, m_gateList.at(index.row()).gate));
                 case (Qt::EditRole):
-                    return QVariant(spectrumAlgorithms::findFullIntegralIntensity(ctrl::SpectrumSPM()/*TODO: load activated spectrum*/, m_gateList.at(index.row()).gate));
+                    return QVariant(spectrumAlgorithms::findFullIntegralIntensity(m_activeSpectrum, m_gateList.at(index.row()).gate));
                 case (Qt::TextAlignmentRole):
                     return QVariant(Qt::AlignCenter);
                 default:
@@ -129,10 +118,10 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
             gatePen = m_gateList.at(index.row());
 
             if(doubleValue > data(this->index(index.row(), 2)).toDouble()) {
-                gatePen.gate.setEnergyLowThreshhold(data(this->index(index.row(), 2)).toDouble());
+                gatePen.gate.setEnergyThreshholds(data(this->index(index.row(), 2)).toDouble(), gatePen.gate.getEnergyHighThreshhold());
             }
             else {
-                gatePen.gate.setEnergyLowThreshhold(doubleValue);
+                gatePen.gate.setEnergyThreshholds(doubleValue, gatePen.gate.getEnergyHighThreshhold());
             }
 
             m_gateList.replace(index.row(), gatePen);
@@ -143,10 +132,10 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
             gatePen = m_gateList.at(index.row());
 
             if(doubleValue < data(this->index(index.row(), 1)).toDouble()) {
-                gatePen.gate.setEnergyHighThreshhold(data(this->index(index.row(), 1)).toDouble());
+                gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), data(this->index(index.row(), 1)).toDouble());
             }
             else {
-                gatePen.gate.setEnergyHighThreshhold(doubleValue);
+                gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), doubleValue);
             }
 
             m_gateList.replace(index.row(), gatePen);
@@ -179,9 +168,15 @@ QVariant ctrl::GatesTableModel::headerData(int section, Qt::Orientation orientat
         case (Qt::Vertical):
             return QVariant(section + 1);
     }
+    return QVariant();
 }
 
 Qt::ItemFlags ctrl::GatesTableModel::flags(const QModelIndex &index) const {
     Qt::ItemFlags flags = QAbstractTableModel::flags(index);
         return (index.isValid())&&(index.column() != GATE_TABLE_COLUMN::FULL_INTEGRAL_INTENSITY) ? (flags | Qt::ItemIsEditable) : flags;
+}
+
+void ctrl::GatesTableModel::slotSetActivatedSpectrum(const ctrl::SpectrumSPM spectrum) {
+    m_activeSpectrum = spectrum;
+    emit dataChanged(QModelIndex(), QModelIndex());
 }

@@ -24,9 +24,11 @@ namespace ctrl {
         const QList<SpectrumPenStruct>& getSpecList() const;
         double getEnergyStepOfActivatedSpectrum() const;
         double getEnergyStartofActivatedSpectrum() const;
+        const ctrl::SpectrumSPM getActiveSpectrum() const;
 
     signals:
         void updateSpectrums(bool resizeAxis);
+        void activatedSpectrum(const ctrl::SpectrumSPM);
     private:
         QList<SpectrumPenStruct> m_specList;
         int m_orderNumberLoadedSpectrum;

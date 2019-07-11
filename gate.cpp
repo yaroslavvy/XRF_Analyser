@@ -14,20 +14,24 @@ void ctrl::Gate::readFromString(const QString& line) {
         throw Exception(QTranslator::tr(" Opening is failed. Gate is wrong\n"));
     }
     setGateName(strLst.takeFirst());
-    setEnergyLowThreshhold(std::stod(srvcSpec::commaToDot(strLst.takeFirst().toStdString())));
-    setEnergyHighThreshhold(std::stod(srvcSpec::commaToDot(strLst.takeFirst().toStdString())));
+    double possibleEnergyLowThreshhold = std::stod(srvcSpec::commaToDot(strLst.takeFirst().toStdString()));
+    double possibleEnergyHighThreshhold = std::stod(srvcSpec::commaToDot(strLst.takeFirst().toStdString()));
+    setEnergyThreshholds(possibleEnergyLowThreshhold, possibleEnergyHighThreshhold);
 }
 
 void ctrl::Gate::writeToString(const QString& line) const {
     (void)line;
 }
 
-void ctrl::Gate::setEnergyLowThreshhold(double energyLowThreshhold) {
-    m_energyLowThreshhold = energyLowThreshhold;
-}
-
-void ctrl::Gate::setEnergyHighThreshhold(double energyHighThreshhold) {
-    m_energyHighThreshhold = energyHighThreshhold;
+void ctrl::Gate::setEnergyThreshholds(double energyLowThreshhold, double energyHighThreshhold) {
+    if ((energyLowThreshhold <= energyHighThreshhold) && (energyLowThreshhold >= 0)) {
+        m_energyLowThreshhold = energyLowThreshhold;
+        m_energyHighThreshhold = energyHighThreshhold;
+    }
+    else {
+        m_energyLowThreshhold = 0.0;
+        m_energyHighThreshhold = 0.0;
+    }
 }
 
 double ctrl::Gate::getEnergyLowThreshhold() const {

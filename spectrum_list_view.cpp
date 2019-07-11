@@ -127,14 +127,9 @@ void ui::SpectrumListView::deselectAll() {
 
 void ui::SpectrumListView::invertSelection() {
     QItemSelectionModel* spectrumListViewSelectionModel = selectionModel();
-    QModelIndexList indexList;
-    int rowAmount = model()->rowCount();
-    for (int row = 0; row < rowAmount; ++row) {
-        indexList.push_back(model()->index(row, 0));
-    }
-    for(auto &index : indexList){
-        spectrumListViewSelectionModel->select(index, QItemSelectionModel::Toggle);
-    }
+    QItemSelection itemSelection(spectrumListViewSelectionModel->selection());
+    selectAll();
+    spectrumListViewSelectionModel->select(itemSelection, QItemSelectionModel::Deselect);
 }
 
 void ui::SpectrumListView::showHideItems() {

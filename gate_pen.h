@@ -10,7 +10,6 @@ namespace ctrl {
     {
         ctrl::Gate gate;
         QPen penForChart;
-        bool visible = true;
     };
 }
 
