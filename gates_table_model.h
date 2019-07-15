@@ -35,12 +35,11 @@ namespace ctrl {
         bool setData(const QModelIndex& index, const QVariant& value, int nRole) override;
         QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
         Qt::ItemFlags flags(const QModelIndex &index) const override;
+        void setActivatedSpectrum(const ctrl::SpectrumSPM);
+        void setSelectedGateThreshholds(double gateLowThreshhold, double gateHighThreshhold, int selectedRow);
 
     signals:
         void updateGates(bool resizeAxis);
-
-    public slots:
-        void slotSetActivatedSpectrum(const ctrl::SpectrumSPM);
 
     private:
         QList<GatePen> m_gateList;

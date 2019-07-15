@@ -16,6 +16,12 @@ namespace ctrl {
 }
 
 namespace ui {
+    enum CursorMode {
+        USIAL,
+        SELECT_GATE_THRESHHOLDS,
+        SEARCHING_ELEMENT_LINE
+    };
+
     class SpectrumChart : public QtCharts::QChart {
 
         Q_OBJECT
@@ -25,11 +31,18 @@ namespace ui {
         void addSpectrum(const ctrl::SpectrumPenStruct& specPenStruct, bool resizeAxis = true);
         void addGate(const ctrl::GatePen& gatePen, bool resizeAxis = false);
         void setFullSizeSpectrumArea();
+        void setCursorMode(CursorMode mode);
+        void setStartEnergyGateThreshhold(double startEnergyGateThreshhold);
+        void setFinishEnergyGateThreshhold(double finishEnergyGateThreshhold);
 
         ctrl::SpectrumListModel* getModelSpectrums() const;
         ctrl::GatesTableModel* getModelGates() const;
         QItemSelectionModel* getSelectionModelSpectrums() const;
         QItemSelectionModel* getSelectionModelGates() const;
+        ui::AxisXMode getAxisXMode() const;
+
+        double getStartEnergyGateThreshhold() const;
+        double getFinishEnergyGateThreshhold() const;
 
         void setXMode(AxisXMode);
         ui::AxisXMode getXMode() const;
@@ -37,7 +50,7 @@ namespace ui {
         ui::AxisYMode getYMode() const;
 
     signals:
-        void activatedSpectrum(const ctrl::SpectrumSPM);
+        void setGatesThreshholds(double gateLowThreshhold, double gateHighThreshhold, int selectedRow);
 
     public slots:
         void recoverAxisLimits();
@@ -52,7 +65,6 @@ namespace ui {
 
     private:
         void controlAxisLimits(double maxIntensity, double minValX, double maxValX, bool resizeAxis = true);
-        double convertChannelToEnergyKeV (double startSpec, double channel, double step) const;
 
         const double MIN_POSSIBLE_LOG_Y_AXIS_VALUE = 0.00001;//min value of the log axisY can not be ZERO or NEGATIVE
         const double COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM = 1.239842;
@@ -72,7 +84,7 @@ namespace ui {
         AxisXMode m_xMode;
         AxisYMode m_yMode;
 
-        int m_modeCursor;
+        CursorMode m_modeCursor;
 
         double m_fullViewMinX;
         double m_fullViewMaxX;
@@ -84,7 +96,13 @@ namespace ui {
         QtCharts::QLineSeries* m_verticalLineCursor;
         QtCharts::QLineSeries* m_horizontalLineCursor;
 
+        QtCharts::QLineSeries* m_gateLowThreshhold;
+        QtCharts::QLineSeries* m_gateHighThreshhold;
+
         QtCharts::QValueAxis* m_axisSpecX;
+
+        double m_startEnergyGateThreshhold;
+        double m_finishEnergyGateThreshhold;
     };
 }
 

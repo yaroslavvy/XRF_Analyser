@@ -8,6 +8,7 @@
 #include <QTranslator>
 #include <QCursor>
 #include <QDebug>
+#include <QMessageBox>
 #include <QItemSelectionModel>
 #include "gates_table_model.h"
 #include "spectrum_spm.h"
@@ -15,6 +16,7 @@
 #include "spectrum_list_view.h"
 #include "gates_table_model.h"
 #include "gates_table_view.h"
+#include "spectrum_algorithms.h"
 
 ui::SpectrumChart::SpectrumChart(QGraphicsItem* parent)
     : QtCharts::QChart(parent),
@@ -24,11 +26,13 @@ ui::SpectrumChart::SpectrumChart(QGraphicsItem* parent)
       m_selectionModelGate(nullptr),
       m_xMode(ui::AxisXMode::ENERGY_KEV),
       m_yMode(ui::AxisYMode::LINEAR),
-      m_modeCursor(0),
-      m_fullViewMinX(0),
-      m_fullViewMaxX(0),
-      m_fullViewMinY(0),
-      m_fullViewMaxY(0)
+      m_modeCursor(CursorMode::USIAL),
+      m_fullViewMinX(0.0),
+      m_fullViewMaxX(0.0),
+      m_fullViewMinY(0.0),
+      m_fullViewMaxY(0.0),
+      m_startEnergyGateThreshhold(0.0),
+      m_finishEnergyGateThreshhold(0.0)
 {
     m_modelSpec = new ctrl::SpectrumListModel(this);
     m_modelGate = new ctrl::GatesTableModel(this);
@@ -44,7 +48,6 @@ ui::SpectrumChart::SpectrumChart(QGraphicsItem* parent)
     connect(m_selectionModelGate, SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(slotUpdateChartWithoutResizeAxis()));
 
     connect(m_modelSpec, SIGNAL(activatedSpectrum(const ctrl::SpectrumSPM)), this, SLOT(setActivatedSpectrum(const ctrl::SpectrumSPM)));
-    connect(this, SIGNAL(activatedSpectrum(const ctrl::SpectrumSPM)), m_modelGate, SLOT(slotSetActivatedSpectrum(const ctrl::SpectrumSPM)));
 
     legend()->hide();
     setMargins(QMargins(0, 0, 0, 0));
@@ -183,26 +186,66 @@ void ui::SpectrumChart::slotUpdateChart(bool resizeAxis) {
 
         QModelIndexList indexSelectedGateList = m_selectionModelGate->selectedRows();
 
-        for (auto &indexGate : indexSelectedGateList) {
-            addGate(m_modelGate->getGateList().at(indexGate.row()), resizeAxis);
+        switch (m_modeCursor) {
+            case(CursorMode::USIAL):
+                for (auto &indexGate : indexSelectedGateList) {
+                    addGate(m_modelGate->getGateList().at(indexGate.row()), resizeAxis);
+                }
+
+                m_verticalLineCursor = new QtCharts::QLineSeries;
+                m_verticalLineCursor->setPen(QPen(Qt::red, 1, Qt::DashLine));
+                m_verticalLineCursor->append(mousePos.x(), m_fullViewMinY);
+                m_verticalLineCursor->append(mousePos.x(), m_fullViewMaxY);
+                addSeries(m_verticalLineCursor);
+                m_verticalLineCursor->attachAxis(m_axisSpecX);
+                m_verticalLineCursor->attachAxis(axes(Qt::Vertical).back());
+
+                m_horizontalLineCursor = new QtCharts::QLineSeries;
+                m_horizontalLineCursor->setPen(QPen(Qt::red, 1, Qt::DashLine));
+                m_horizontalLineCursor->append(m_fullViewMinX, mousePos.y());
+                m_horizontalLineCursor->append(m_fullViewMaxX, mousePos.y());
+                addSeries(m_horizontalLineCursor);
+                m_horizontalLineCursor->attachAxis(m_axisSpecX);
+                m_horizontalLineCursor->attachAxis(axes(Qt::Vertical).back());
+
+                setCursor(Qt::CrossCursor);
+
+                break;
+
+            case(CursorMode::SELECT_GATE_THRESHHOLDS):
+                if(indexSelectedGateList.size() > 1) {
+                    QMessageBox::critical(nullptr, tr("Error!"), tr("You must select only one gate!"), QMessageBox::Cancel);
+                    setCursorMode(CursorMode::USIAL);
+                    return;
+                }
+                if(indexSelectedGateList.size() < 1) {
+                    QMessageBox::critical(nullptr, tr("Error!"), tr("You must select a gate! If gate list is empty You should add one"), QMessageBox::Cancel);
+                    setCursorMode(CursorMode::USIAL);
+                    return;
+                }
+                m_gateLowThreshhold = new QtCharts::QLineSeries;
+                m_gateLowThreshhold->setPen(QPen(Qt::blue, 1, Qt::DashLine));
+                m_gateLowThreshhold->append(mousePos.x(), m_fullViewMinY);
+                m_gateLowThreshhold->append(mousePos.x(), m_fullViewMaxY);
+                addSeries(m_gateLowThreshhold);
+                m_gateLowThreshhold->attachAxis(m_axisSpecX);
+                m_gateLowThreshhold->attachAxis(axes(Qt::Vertical).back());
+
+                m_gateHighThreshhold = new QtCharts::QLineSeries;
+                m_gateHighThreshhold->setPen(QPen(Qt::blue, 1, Qt::DashLine));
+                m_gateHighThreshhold->append(mousePos.x(), m_fullViewMinY);
+                m_gateHighThreshhold->append(mousePos.x(), m_fullViewMaxY);
+                addSeries(m_gateHighThreshhold);
+                m_gateHighThreshhold->attachAxis(m_axisSpecX);
+                m_gateHighThreshhold->attachAxis(axes(Qt::Vertical).back());
+
+                setCursor(Qt::SizeHorCursor);
+
+                break;
+
+            case(CursorMode::SEARCHING_ELEMENT_LINE):
+                break;
         }
-
-        m_verticalLineCursor = new QtCharts::QLineSeries;
-        m_verticalLineCursor->setPen(QPen(Qt::red, 1, Qt::DashLine));
-        m_verticalLineCursor->append(mousePos.x(), m_fullViewMinY);
-        m_verticalLineCursor->append(mousePos.x(), m_fullViewMaxY);
-        addSeries(m_verticalLineCursor);
-        m_verticalLineCursor->attachAxis(m_axisSpecX);
-        m_verticalLineCursor->attachAxis(axes(Qt::Vertical).back());
-
-        m_horizontalLineCursor = new QtCharts::QLineSeries;
-        m_horizontalLineCursor->setPen(QPen(Qt::red, 1, Qt::DashLine));
-        m_horizontalLineCursor->append(m_fullViewMinX, mousePos.y());
-        m_horizontalLineCursor->append(m_fullViewMaxX, mousePos.y());
-        addSeries(m_horizontalLineCursor);
-        m_horizontalLineCursor->attachAxis(m_axisSpecX);
-        m_horizontalLineCursor->attachAxis(axes(Qt::Vertical).back());
-
     if(resizeAxis) {
         m_axisSpecX->setRange(m_fullViewMinX, m_fullViewMaxX);
         axes(Qt::Vertical).back()->setRange(m_fullViewMinY, m_fullViewMaxY);
@@ -217,18 +260,36 @@ void ui::SpectrumChart::setAndRepaintMouseCursor(const QPointF &newMousePos){
     if ((newMousePos.x() < m_fullViewMinX) || (newMousePos.x() > m_fullViewMaxX) || (newMousePos.y() < m_fullViewMinY) || (newMousePos.y() > m_fullViewMaxY)){
         return;
     }
-    mousePos = newMousePos;
-    m_verticalLineCursor->clear();
-    m_verticalLineCursor->append(mousePos.x(), m_fullViewMinY);
-    m_verticalLineCursor->append(mousePos.x(), m_fullViewMaxY);
 
-    m_horizontalLineCursor->clear();
-    m_horizontalLineCursor->append(m_fullViewMinX, mousePos.y());
-    m_horizontalLineCursor->append(m_fullViewMaxX, mousePos.y());
+    mousePos = newMousePos;
+
+    switch (m_modeCursor) {
+        case(CursorMode::USIAL):
+            m_verticalLineCursor->clear();
+            m_verticalLineCursor->append(mousePos.x(), m_fullViewMinY);
+            m_verticalLineCursor->append(mousePos.x(), m_fullViewMaxY);
+
+            m_horizontalLineCursor->clear();
+            m_horizontalLineCursor->append(m_fullViewMinX, mousePos.y());
+            m_horizontalLineCursor->append(m_fullViewMaxX, mousePos.y());
+
+            break;
+
+        case(CursorMode::SELECT_GATE_THRESHHOLDS):
+
+            m_gateHighThreshhold->clear();
+            m_gateHighThreshhold->append(mousePos.x(), m_fullViewMinY);
+            m_gateHighThreshhold->append(mousePos.x(), m_fullViewMaxY);
+
+            break;
+
+        case(CursorMode::SEARCHING_ELEMENT_LINE):
+            break;
+    }
 }
 
 void ui::SpectrumChart::setActivatedSpectrum(const ctrl::SpectrumSPM spectrum) {
-    emit activatedSpectrum(spectrum);
+    m_modelGate->setActivatedSpectrum(spectrum);
 }
 
 void ui::SpectrumChart::addSpectrum(const ctrl::SpectrumPenStruct &specPenStruct, bool resizeAxis)
@@ -262,20 +323,20 @@ void ui::SpectrumChart::addSpectrum(const ctrl::SpectrumPenStruct &specPenStruct
     for (auto &valY : vecIntensities) {
         switch (m_xMode) {
             case ui::AxisXMode::ENERGY_KEV:
-                valX = convertChannelToEnergyKeV(startSpec, channel, step);
+                valX = spectrumAlgorithms::convertChannelToEnergyKeV(startSpec, channel, step);
                 break;
             case ui::AxisXMode::CHANNELS:
                 valX = channel;
                 break;
             case ui::AxisXMode::WAVE_LENGTH_NM:
-                valX = COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / convertChannelToEnergyKeV(startSpec, channel, step);
+                valX = COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / spectrumAlgorithms::convertChannelToEnergyKeV(startSpec, channel, step);
                 if(valX < 0) {
                     channel++;
                     continue;
                 }
                 break;
             case ui::AxisXMode::WAVE_LENGTH_A:
-               valX = COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / convertChannelToEnergyKeV(startSpec, channel, step);
+               valX = COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / spectrumAlgorithms::convertChannelToEnergyKeV(startSpec, channel, step);
                if(valX < 0) {
                    channel++;
                    continue;
@@ -375,6 +436,45 @@ void ui::SpectrumChart::setFullSizeSpectrumArea() {
     axes(Qt::Vertical).back()->setRange(m_fullViewMinY, m_fullViewMaxY);
 }
 
+void ui::SpectrumChart::setCursorMode(CursorMode mode) {
+    if(m_modeCursor == mode) {
+        return;
+    }
+    m_modeCursor = mode;
+    slotUpdateChart(false);
+}
+
+void ui::SpectrumChart::setStartEnergyGateThreshhold(double startEnergyGateThreshhold) {
+    if(startEnergyGateThreshhold < 0) {
+        return;
+    }
+    m_startEnergyGateThreshhold = startEnergyGateThreshhold;
+}
+
+void ui::SpectrumChart::setFinishEnergyGateThreshhold(double finishEnergyGateThreshhold) {
+    if(finishEnergyGateThreshhold < 0) {
+        return;
+    }
+    if(m_modeCursor == CursorMode::SELECT_GATE_THRESHHOLDS){
+        m_finishEnergyGateThreshhold = finishEnergyGateThreshhold;
+        double gateLowThreshhold = std::min(m_startEnergyGateThreshhold, m_finishEnergyGateThreshhold);
+        double gateHighThreshhold = std::max(m_startEnergyGateThreshhold, m_finishEnergyGateThreshhold);
+        QModelIndexList indexSelectedGateList = m_selectionModelGate->selectedRows();
+        if(indexSelectedGateList.size() > 1) {
+            QMessageBox::critical(nullptr, tr("Error!"), tr("You must select only one gate!"), QMessageBox::Cancel);
+            setCursorMode(CursorMode::USIAL);
+            return;
+        }
+        if(indexSelectedGateList.size() < 1) {
+            QMessageBox::critical(nullptr, tr("Error!"), tr("You must select a gate! If gate list is empty You should add one"), QMessageBox::Cancel);
+            setCursorMode(CursorMode::USIAL);
+            return;
+        }
+
+        m_modelGate->setSelectedGateThreshholds(gateLowThreshhold, gateHighThreshhold, indexSelectedGateList.first().row());
+    }
+}
+
 void ui::SpectrumChart::wheelEvent(QGraphicsSceneWheelEvent* event) {
     double sizeFactor = 1.5;
     if(event->delta() < 0) {
@@ -466,10 +566,6 @@ void ui::SpectrumChart::controlAxisLimits(double maxIntensity, double minValX, d
     }
 }
 
-double ui::SpectrumChart::convertChannelToEnergyKeV (double startSpec, double channel, double step) const {
-    return startSpec + (channel * step);
-}
-
 void ui::SpectrumChart::recoverAxisLimits()
 {
     if(m_axisSpecX->min() < m_fullViewMinX) {
@@ -521,6 +617,17 @@ QItemSelectionModel* ui::SpectrumChart::getSelectionModelSpectrums() const {
 
 QItemSelectionModel* ui::SpectrumChart::getSelectionModelGates() const {
     return m_selectionModelGate;
+}
+
+ui::AxisXMode ui::SpectrumChart::getAxisXMode() const {
+    return m_xMode;
+}
+
+double ui::SpectrumChart::getStartEnergyGateThreshhold() const {
+    return m_startEnergyGateThreshhold;
+}
+double ui::SpectrumChart::getFinishEnergyGateThreshhold() const {
+    return m_finishEnergyGateThreshhold;
 }
 
 void ui::SpectrumChart::slotCursorMode(int mode){

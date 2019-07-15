@@ -36,6 +36,13 @@ void ui::WorkAreaView::mouseMoveEvent(QMouseEvent *event){
     const QPointF widgetPos(event->localPos());
     const QPoint viewPos(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y()));
     const QPointF mousePos(chart()->mapToValue(chart()->mapFromScene(mapToScene(viewPos))));
+
+    if ((event->modifiers() == Qt::ShiftModifier) && (event->buttons() & Qt::LeftButton)){
+        getSpectrumChart()->setCursorMode(CursorMode::SELECT_GATE_THRESHHOLDS);
+    }
+    else {
+        getSpectrumChart()->setCursorMode(CursorMode::USIAL);
+    }
     getSpectrumChart()->setAndRepaintMouseCursor(mousePos);
     QtCharts::QChartView::mouseMoveEvent(event);
 }
@@ -46,7 +53,33 @@ void ui::WorkAreaView::mouseDoubleClickEvent(QMouseEvent* event){
 }
 
 void ui::WorkAreaView::mousePressEvent(QMouseEvent *event) {
+    if ((event->modifiers() & Qt::ShiftModifier) && (event->buttons() & Qt::LeftButton)){
+        const QPointF widgetPos(event->localPos());
+        const QPoint viewPos(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y()));
+        const QPointF mousePos(chart()->mapToValue(chart()->mapFromScene(mapToScene(viewPos))));
+
+        getSpectrumChart()->setCursorMode(CursorMode::SELECT_GATE_THRESHHOLDS);
+        getSpectrumChart()->setAndRepaintMouseCursor(mousePos);
+        getSpectrumChart()->setStartEnergyGateThreshhold(mousePos.x());
+        return;
+    }
+
     QtCharts::QChartView::mousePressEvent(event);
+}
+
+void ui::WorkAreaView::mouseReleaseEvent(QMouseEvent *event) {
+    if (event->modifiers() & Qt::ShiftModifier){
+        const QPointF widgetPos(event->localPos());
+        const QPoint viewPos(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y()));
+        const QPointF mousePos(chart()->mapToValue(chart()->mapFromScene(mapToScene(viewPos))));
+
+        getSpectrumChart()->setFinishEnergyGateThreshhold(mousePos.x());
+        getSpectrumChart()->setCursorMode(CursorMode::USIAL);
+        getSpectrumChart()->setAndRepaintMouseCursor(mousePos);
+        return;
+    }
+
+    QtCharts::QChartView::mouseReleaseEvent(event);
 }
 
 void ui::WorkAreaView::dragEnterEvent (QDragEnterEvent *event) {
@@ -127,5 +160,6 @@ void ui::WorkAreaView::focusOutEvent(QFocusEvent *event) {
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, false);
-    QtCharts::QChartView::focusInEvent(event);
+    getSpectrumChart()->setCursorMode(CursorMode::USIAL);
+    QtCharts::QChartView::focusOutEvent(event);
 }

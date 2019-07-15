@@ -1,6 +1,7 @@
 #include "gates_table_model.h"
 #include <QStandardItem>
 #include <QItemSelection>
+#include <QDebug>
 #include "gate.h"
 #include "gate_pen.h"
 #include "spectrum_algorithms.h"
@@ -125,6 +126,7 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
             }
 
             m_gateList.replace(index.row(), gatePen);
+            qDebug() << "Low setData: " << doubleValue;
             emit dataChanged(index, index);
             emit updateGates(false);
             return true;
@@ -139,6 +141,7 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
             }
 
             m_gateList.replace(index.row(), gatePen);
+            qDebug() << "High setData: " << doubleValue;
             emit dataChanged(index, index);
             emit updateGates(false);
             return true;
@@ -176,7 +179,16 @@ Qt::ItemFlags ctrl::GatesTableModel::flags(const QModelIndex &index) const {
         return (index.isValid())&&(index.column() != GATE_TABLE_COLUMN::FULL_INTEGRAL_INTENSITY) ? (flags | Qt::ItemIsEditable) : flags;
 }
 
-void ctrl::GatesTableModel::slotSetActivatedSpectrum(const ctrl::SpectrumSPM spectrum) {
+void ctrl::GatesTableModel::setActivatedSpectrum(const ctrl::SpectrumSPM spectrum) {
     m_activeSpectrum = spectrum;
+    emit dataChanged(QModelIndex(), QModelIndex());
+}
+
+void ctrl::GatesTableModel::setSelectedGateThreshholds(double gateLowThreshhold, double gateHighThreshhold, int selectedRow) {
+    GatePen gatePen;
+    gatePen = m_gateList.at(selectedRow);
+    gatePen.gate.setEnergyThreshholds(gateLowThreshhold, gateHighThreshhold);
+    qDebug() << "High setSelectedGateThreshholds: " << gateLowThreshhold << " " << gateHighThreshhold;
+    m_gateList.replace(selectedRow, gatePen);
     emit dataChanged(QModelIndex(), QModelIndex());
 }

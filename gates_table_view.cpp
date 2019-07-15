@@ -197,10 +197,6 @@ void ui::GatesTableView::pasteItem() {
     setSelectionModel(itemSelectionModel);
 }
 
-void slotSetActivatedSpectrum(const ctrl::SpectrumSPM &activatedSpectrum) {
-
-}
-
 void ui::GatesTableView::mouseDoubleClickEvent(QMouseEvent *event) {
     ui::TableViewInterfaceItemToolBar::mouseDoubleClickEvent(event);
 }
