@@ -89,7 +89,9 @@ void ui::WorkAreaView::mouseMoveEvent(QMouseEvent *event){
 }
 
 void ui::WorkAreaView::mouseDoubleClickEvent(QMouseEvent* event){
-    getSpectrumChart()->setFullSizeSpectrumArea();
+    if(event->buttons() & Qt::LeftButton) {
+        getSpectrumChart()->setFullSizeSpectrumArea();
+    }
     QtCharts::QChartView::mouseDoubleClickEvent(event);
 }
 
