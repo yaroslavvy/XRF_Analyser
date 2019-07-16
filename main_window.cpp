@@ -199,7 +199,7 @@ ui::SingleWindow* ui::MainWindow::createNewSingleWindow() {
 
 void ui::MainWindow::slotNewSingleWindow() {
     createNewSingleWindow()->show();
-    m_pma->cascadeSubWindows();
+    m_pma->tileSubWindows();
     statusBar()->showMessage(tr("New Window..."), 3000);
 }
 

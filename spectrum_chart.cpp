@@ -32,7 +32,6 @@ ui::SpectrumChart::SpectrumChart(QGraphicsItem* parent)
       m_fullViewMaxX(0.0),
       m_fullViewMinY(0.0),
       m_fullViewMaxY(0.0),
-      m_coordinatesLabel(nullptr),
       m_startEnergyGateThreshhold(0.0),
       m_finishEnergyGateThreshhold(0.0)
 {
@@ -92,8 +91,6 @@ ui::SpectrumChart::SpectrumChart(QGraphicsItem* parent)
     addSeries(m_horizontalLineCursor);
     m_horizontalLineCursor->attachAxis(m_axisSpecX);
     m_horizontalLineCursor->attachAxis(axes(Qt::Vertical).back());
-
-    setCursor(Qt::CrossCursor);
 }
 
 void ui::SpectrumChart::setXMode(ui::AxisXMode mode) {
@@ -179,6 +176,25 @@ void ui::SpectrumChart::setYMode(ui::AxisYMode mode) {
 
 ui::AxisYMode ui::SpectrumChart::getYMode() const {
     return m_yMode;
+}
+
+bool ui::SpectrumChart::mouseIsInTheChartArea(const QPointF &newMousePos) const {
+    if(m_axisSpecX->min() > newMousePos.x() || m_axisSpecX->max() < newMousePos.x()) {
+        return false;
+    }
+
+    QtCharts::QValueAxis* axisY;
+    QtCharts::QLogValueAxis* axisLogY;
+
+    switch (m_yMode) {
+        case ui::AxisYMode::LINEAR:
+            axisY = qobject_cast<QtCharts::QValueAxis*>(axes(Qt::Vertical).back());
+            return (axisY->min() <= newMousePos.y() && axisY->max() >= newMousePos.y());
+
+        case ui::AxisYMode::LOG:
+            axisLogY = qobject_cast<QtCharts::QLogValueAxis*>(axes(Qt::Vertical).back());
+            return (axisLogY->min() <= newMousePos.y() && axisLogY->max() >= newMousePos.y());
+    }
 }
 
 void ui::SpectrumChart::slotUpdateChart(bool resizeAxis) {

@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <QApplication>
 #include <QClipboard>
+#include <QLabel>
+#include <QPalette>
 #include "main_window.h"
 #include "work_area_view.h"
 #include "service.h"
@@ -15,9 +17,22 @@
 #include "gates_table_view.h"
 
 ui::WorkAreaView::WorkAreaView(QWidget* parent)
-    : QtCharts::QChartView (parent) {
+    : QtCharts::QChartView (parent),
+      m_coordinatesLabel(nullptr)
+{
     setRubberBand(QtCharts::QChartView::RectangleRubberBand);
     setMouseTracking(true);
+    m_coordinatesLabel = new QLabel(this);
+
+    m_coordinatesLabel->setMinimumWidth(160);
+    m_coordinatesLabel->setMinimumHeight(25);
+    m_coordinatesLabel->setAlignment(Qt::AlignCenter);
+    m_coordinatesLabel->setAutoFillBackground(true);
+
+    QPalette labelPalette;
+    labelPalette.setColor(QPalette::Window, QColor(255, 255, 0, 50));
+    m_coordinatesLabel->setPalette(labelPalette);
+    m_coordinatesLabel->hide();
 }
 
 void ui::WorkAreaView::setXModeView(ui::AxisXMode mode) {
@@ -33,9 +48,9 @@ ui::SpectrumChart* ui::WorkAreaView::getSpectrumChart()const {
 }
 
 void ui::WorkAreaView::mouseMoveEvent(QMouseEvent *event){
-    const QPointF widgetPos(event->localPos());
-    const QPoint viewPos(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y()));
-    const QPointF mousePos(chart()->mapToValue(chart()->mapFromScene(mapToScene(viewPos))));
+    const QPointF mouseWidgetPos(event->localPos());
+    const QPoint mouseViewPos(static_cast<int>(mouseWidgetPos.x()), static_cast<int>(mouseWidgetPos.y()));
+    const QPointF mousePos(chart()->mapToValue(chart()->mapFromScene(mapToScene(mouseViewPos))));
 
     if ((event->modifiers() == Qt::ShiftModifier) && (event->buttons() & Qt::LeftButton)){
         getSpectrumChart()->setCursorMode(CursorMode::SELECT_GATE_THRESHHOLDS);
@@ -44,6 +59,32 @@ void ui::WorkAreaView::mouseMoveEvent(QMouseEvent *event){
         getSpectrumChart()->setCursorMode(CursorMode::USIAL);
     }
     getSpectrumChart()->setAndRepaintMouseCursor(mousePos);
+
+    if(getSpectrumChart()->mouseIsInTheChartArea(mousePos)){
+        QString chartXMode;
+        switch (getSpectrumChart()->getXMode()) {
+            case (ui::AxisXMode::ENERGY_KEV):
+                chartXMode = " KeV ";
+                break;
+            case (ui::AxisXMode::CHANNELS):
+                chartXMode = " ch ";
+                break;
+            case (ui::AxisXMode::WAVE_LENGTH_NM):
+                chartXMode = " nm ";
+                break;
+            case (ui::AxisXMode::WAVE_LENGTH_A):
+                chartXMode = " A ";
+                break;
+        }
+        const QPoint labelViewPos(mouseViewPos.x() + 20, mouseViewPos.y() + 20);
+        m_coordinatesLabel->move(labelViewPos);
+        m_coordinatesLabel->setText(QString::number(mousePos.x()) + chartXMode + QString::number(mousePos.y()) + " cps");
+        m_coordinatesLabel->show();
+    }
+    else {
+        m_coordinatesLabel->hide();
+    }
+
     QtCharts::QChartView::mouseMoveEvent(event);
 }
 
@@ -54,13 +95,37 @@ void ui::WorkAreaView::mouseDoubleClickEvent(QMouseEvent* event){
 
 void ui::WorkAreaView::mousePressEvent(QMouseEvent *event) {
     if ((event->modifiers() & Qt::ShiftModifier) && (event->buttons() & Qt::LeftButton)){
-        const QPointF widgetPos(event->localPos());
-        const QPoint viewPos(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y()));
-        const QPointF mousePos(chart()->mapToValue(chart()->mapFromScene(mapToScene(viewPos))));
-
+        const QPointF mouseWidgetPos(event->localPos());
+        const QPoint mouseViewPos(static_cast<int>(mouseWidgetPos.x()), static_cast<int>(mouseWidgetPos.y()));
+        const QPointF mousePos(chart()->mapToValue(chart()->mapFromScene(mapToScene(mouseViewPos))));
         getSpectrumChart()->setCursorMode(CursorMode::SELECT_GATE_THRESHHOLDS);
         getSpectrumChart()->setAndRepaintMouseCursor(mousePos);
-        getSpectrumChart()->setStartEnergyGateThreshhold(mousePos.x());
+
+        if(getSpectrumChart()->mouseIsInTheChartArea(mousePos)){
+            QString chartXMode;
+            switch (getSpectrumChart()->getXMode()) {
+                case (ui::AxisXMode::ENERGY_KEV):
+                    chartXMode = " KeV ";
+                    break;
+                case (ui::AxisXMode::CHANNELS):
+                    chartXMode = " ch ";
+                    break;
+                case (ui::AxisXMode::WAVE_LENGTH_NM):
+                    chartXMode = " nm ";
+                    break;
+                case (ui::AxisXMode::WAVE_LENGTH_A):
+                    chartXMode = " A ";
+                    break;
+            }
+            const QPoint labelViewPos(mouseViewPos.x() + 20, mouseViewPos.y() + 20);
+            m_coordinatesLabel->move(labelViewPos);
+            m_coordinatesLabel->setText(QString::number(mousePos.x()) + chartXMode + QString::number(mousePos.y()) + " cps");
+            m_coordinatesLabel->show();
+            getSpectrumChart()->setStartEnergyGateThreshhold(mousePos.x());
+        }
+        else {
+            m_coordinatesLabel->hide();
+        }
         return;
     }
 
@@ -69,13 +134,39 @@ void ui::WorkAreaView::mousePressEvent(QMouseEvent *event) {
 
 void ui::WorkAreaView::mouseReleaseEvent(QMouseEvent *event) {
     if (event->modifiers() & Qt::ShiftModifier){
-        const QPointF widgetPos(event->localPos());
-        const QPoint viewPos(static_cast<int>(widgetPos.x()), static_cast<int>(widgetPos.y()));
-        const QPointF mousePos(chart()->mapToValue(chart()->mapFromScene(mapToScene(viewPos))));
+        const QPointF mouseWidgetPos(event->localPos());
+        const QPoint mouseViewPos(static_cast<int>(mouseWidgetPos.x()), static_cast<int>(mouseWidgetPos.y()));
+        const QPointF mousePos(chart()->mapToValue(chart()->mapFromScene(mapToScene(mouseViewPos))));
 
-        getSpectrumChart()->setFinishEnergyGateThreshhold(mousePos.x());
+        if(getSpectrumChart()->mouseIsInTheChartArea(mousePos)){
+            QString chartXMode;
+            switch (getSpectrumChart()->getXMode()) {
+                case (ui::AxisXMode::ENERGY_KEV):
+                    chartXMode = " KeV ";
+                    break;
+                case (ui::AxisXMode::CHANNELS):
+                    chartXMode = " ch ";
+                    break;
+                case (ui::AxisXMode::WAVE_LENGTH_NM):
+                    chartXMode = " nm ";
+                    break;
+                case (ui::AxisXMode::WAVE_LENGTH_A):
+                    chartXMode = " A ";
+                    break;
+            }
+            const QPoint labelViewPos(mouseViewPos.x() + 20, mouseViewPos.y() + 20);
+            m_coordinatesLabel->move(labelViewPos);
+            m_coordinatesLabel->setText(QString::number(mousePos.x()) + chartXMode + QString::number(mousePos.y()) + " cps");
+            m_coordinatesLabel->show();
+            getSpectrumChart()->setFinishEnergyGateThreshhold(mousePos.x());
+        }
+        else {
+            m_coordinatesLabel->hide();
+        }
+
         getSpectrumChart()->setCursorMode(CursorMode::USIAL);
         getSpectrumChart()->setAndRepaintMouseCursor(mousePos);
+
         return;
     }
 

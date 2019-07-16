@@ -26,6 +26,9 @@ namespace ui {
 
         void focusInEvent(QFocusEvent *event) override;
         void focusOutEvent(QFocusEvent *event) override;
+
+    private:
+        QLabel* m_coordinatesLabel;
     };
 }
 

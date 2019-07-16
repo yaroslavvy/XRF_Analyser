@@ -68,6 +68,8 @@ namespace ui {
         void setYMode(AxisYMode);
         ui::AxisYMode getYMode() const;
 
+        bool mouseIsInTheChartArea(const QPointF &newMousePos) const;
+
     signals:
         void setGatesThreshholds(double gateLowThreshhold, double gateHighThreshhold, int selectedRow);
 
@@ -106,7 +108,6 @@ namespace ui {
         double m_fullViewMaxY;
 
         QPointF m_mousePos;
-        QLabel* m_coordinatesLabel;
 
         QtCharts::QLineSeries* m_verticalLineCursor;
         QtCharts::QLineSeries* m_horizontalLineCursor;
