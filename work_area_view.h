@@ -3,7 +3,6 @@
 
 #include <QChartView>
 #include "spectrum_chart.h"
-#include "spectrum_chart_axis_modes.h"
 class QWidget;
 
 namespace ui {

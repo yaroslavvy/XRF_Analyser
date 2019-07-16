@@ -9,8 +9,8 @@ double spectrumAlgorithms::findFullIntegralIntensity(const ctrl::SpectrumSPM &sp
     }
     double energyStartSpectrum = spectrum.getSpectrumAttributes().energyStartSpectrum_kev;
     double energyStep = spectrum.getSpectrumAttributes().energyStepSpectrum_kev;
-    int channelLowThreshhold = spectrumAlgorithms::convertEnergyKeVToChannel(energyStartSpectrum, gate.getEnergyLowThreshhold(), energyStep);
-    int channelHighThreshhold = spectrumAlgorithms::convertEnergyKeVToChannel(energyStartSpectrum, gate.getEnergyHighThreshhold(), energyStep);
+    int channelLowThreshhold = spectrumAlgorithms::convertEnergyKeVToChannel(energyStartSpectrum, gate.getEnergyLowThreshhold(), energyStep, 0);
+    int channelHighThreshhold = spectrumAlgorithms::convertEnergyKeVToChannel(energyStartSpectrum, gate.getEnergyHighThreshhold(), energyStep, 0);
     QVector<double> intensities = spectrum.getSpectrumAttributes().intensities;
     if (channelHighThreshhold > (intensities.size() - 1)) {
         return 0.0;
@@ -60,11 +60,17 @@ double spectrumAlgorithms::convertChannelToEnergyKeV (double energyStartSpectrum
     return energyStartSpectrum + (channel * energyStep);
 }
 
-int spectrumAlgorithms::convertEnergyKeVToChannel (double energyStartSpectrum, double energyForConvert, double energyStep) {
+double spectrumAlgorithms::convertChannelToEnergyKeV (double energyStartSpectrum, double channel, double energyStep) {
+    return energyStartSpectrum + (channel * energyStep);
+}
+
+int spectrumAlgorithms::convertEnergyKeVToChannel (double energyStartSpectrum, double energyForConvert, double energyStep, int) {
     return static_cast<int>((energyForConvert - energyStartSpectrum) / energyStep);
 }
 
-
+double spectrumAlgorithms::convertEnergyKeVToChannel (double energyStartSpectrum, double energyForConvert, double energyStep, double) {
+    return (energyForConvert - energyStartSpectrum) / energyStep;
+}
 
 double spectrumAlgorithms::findEnergyFromChannelMidPoint(double energyStartSpectrum, int channel, double energyStep) {
     return energyStartSpectrum + ((channel + 0.5) * energyStep);

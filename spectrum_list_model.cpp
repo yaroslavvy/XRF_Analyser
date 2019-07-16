@@ -1,4 +1,5 @@
 #include "spectrum_list_model.h"
+#include <QDebug>
 #include <QFont>
 
 ctrl::SpectrumListModel::SpectrumListModel(QObject* parent)
@@ -80,9 +81,10 @@ void ctrl::SpectrumListModel::setActivatedSpectrum(const QModelIndex& index){
     activatedSpectrumPenStruct.activated = true;
     m_specList.replace(index.row(), activatedSpectrumPenStruct);
 
+    m_activatedSpectrumIndex = index;
+
     emit dataChanged(QModelIndex(), QModelIndex());
     emit updateSpectrums(false);
-    m_activatedSpectrumIndex = index;
     emit activatedSpectrum(getActiveSpectrum());
 }
 
@@ -167,11 +169,17 @@ Qt::ItemFlags ctrl::SpectrumListModel::flags(const QModelIndex &index) const {
 }
 
 double ctrl::SpectrumListModel::getEnergyStepOfActivatedSpectrum() const {
-    return m_specList.at(m_activatedSpectrumIndex.row()).spm.getSpectrumAttributes().energyStepSpectrum_kev;
+    if(m_activatedSpectrumIndex.isValid()) {
+        return m_specList.at(m_activatedSpectrumIndex.row()).spm.getSpectrumAttributes().energyStepSpectrum_kev;
+    }
+    return -1;
 }
 
 double ctrl::SpectrumListModel::getEnergyStartofActivatedSpectrum() const {
-    return m_specList.at(m_activatedSpectrumIndex.row()).spm.getSpectrumAttributes().energyStartSpectrum_kev;
+    if(m_activatedSpectrumIndex.isValid()) {
+        return m_specList.at(m_activatedSpectrumIndex.row()).spm.getSpectrumAttributes().energyStartSpectrum_kev;
+    }
+    return -1;
 }
 
 const ctrl::SpectrumSPM ctrl::SpectrumListModel::getActiveSpectrum() const {

@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QItemSelectionModel>
+#include <QLabel>
 #include "gates_table_model.h"
 #include "spectrum_spm.h"
 #include "spectrum_list_model.h"
@@ -31,6 +32,7 @@ ui::SpectrumChart::SpectrumChart(QGraphicsItem* parent)
       m_fullViewMaxX(0.0),
       m_fullViewMinY(0.0),
       m_fullViewMaxY(0.0),
+      m_coordinatesLabel(nullptr),
       m_startEnergyGateThreshhold(0.0),
       m_finishEnergyGateThreshhold(0.0)
 {
@@ -132,6 +134,8 @@ void ui::SpectrumChart::setXMode(ui::AxisXMode mode) {
     }
 
     m_xMode = mode;
+    m_modelGate->setAxisXMode(m_xMode);
+
     slotUpdateChart(true);
 }
 
@@ -194,16 +198,16 @@ void ui::SpectrumChart::slotUpdateChart(bool resizeAxis) {
 
                 m_verticalLineCursor = new QtCharts::QLineSeries;
                 m_verticalLineCursor->setPen(QPen(Qt::red, 1, Qt::DashLine));
-                m_verticalLineCursor->append(mousePos.x(), m_fullViewMinY);
-                m_verticalLineCursor->append(mousePos.x(), m_fullViewMaxY);
+                m_verticalLineCursor->append(m_mousePos.x(), m_fullViewMinY);
+                m_verticalLineCursor->append(m_mousePos.x(), m_fullViewMaxY);
                 addSeries(m_verticalLineCursor);
                 m_verticalLineCursor->attachAxis(m_axisSpecX);
                 m_verticalLineCursor->attachAxis(axes(Qt::Vertical).back());
 
                 m_horizontalLineCursor = new QtCharts::QLineSeries;
                 m_horizontalLineCursor->setPen(QPen(Qt::red, 1, Qt::DashLine));
-                m_horizontalLineCursor->append(m_fullViewMinX, mousePos.y());
-                m_horizontalLineCursor->append(m_fullViewMaxX, mousePos.y());
+                m_horizontalLineCursor->append(m_fullViewMinX, m_mousePos.y());
+                m_horizontalLineCursor->append(m_fullViewMaxX, m_mousePos.y());
                 addSeries(m_horizontalLineCursor);
                 m_horizontalLineCursor->attachAxis(m_axisSpecX);
                 m_horizontalLineCursor->attachAxis(axes(Qt::Vertical).back());
@@ -225,16 +229,16 @@ void ui::SpectrumChart::slotUpdateChart(bool resizeAxis) {
                 }
                 m_gateLowThreshhold = new QtCharts::QLineSeries;
                 m_gateLowThreshhold->setPen(QPen(Qt::blue, 1, Qt::DashLine));
-                m_gateLowThreshhold->append(mousePos.x(), m_fullViewMinY);
-                m_gateLowThreshhold->append(mousePos.x(), m_fullViewMaxY);
+                m_gateLowThreshhold->append(m_mousePos.x(), m_fullViewMinY);
+                m_gateLowThreshhold->append(m_mousePos.x(), m_fullViewMaxY);
                 addSeries(m_gateLowThreshhold);
                 m_gateLowThreshhold->attachAxis(m_axisSpecX);
                 m_gateLowThreshhold->attachAxis(axes(Qt::Vertical).back());
 
                 m_gateHighThreshhold = new QtCharts::QLineSeries;
                 m_gateHighThreshhold->setPen(QPen(Qt::blue, 1, Qt::DashLine));
-                m_gateHighThreshhold->append(mousePos.x(), m_fullViewMinY);
-                m_gateHighThreshhold->append(mousePos.x(), m_fullViewMaxY);
+                m_gateHighThreshhold->append(m_mousePos.x(), m_fullViewMinY);
+                m_gateHighThreshhold->append(m_mousePos.x(), m_fullViewMaxY);
                 addSeries(m_gateHighThreshhold);
                 m_gateHighThreshhold->attachAxis(m_axisSpecX);
                 m_gateHighThreshhold->attachAxis(axes(Qt::Vertical).back());
@@ -261,25 +265,25 @@ void ui::SpectrumChart::setAndRepaintMouseCursor(const QPointF &newMousePos){
         return;
     }
 
-    mousePos = newMousePos;
+    m_mousePos = newMousePos;
 
     switch (m_modeCursor) {
         case(CursorMode::USIAL):
             m_verticalLineCursor->clear();
-            m_verticalLineCursor->append(mousePos.x(), m_fullViewMinY);
-            m_verticalLineCursor->append(mousePos.x(), m_fullViewMaxY);
+            m_verticalLineCursor->append(m_mousePos.x(), m_fullViewMinY);
+            m_verticalLineCursor->append(m_mousePos.x(), m_fullViewMaxY);
 
             m_horizontalLineCursor->clear();
-            m_horizontalLineCursor->append(m_fullViewMinX, mousePos.y());
-            m_horizontalLineCursor->append(m_fullViewMaxX, mousePos.y());
+            m_horizontalLineCursor->append(m_fullViewMinX, m_mousePos.y());
+            m_horizontalLineCursor->append(m_fullViewMaxX, m_mousePos.y());
 
             break;
 
         case(CursorMode::SELECT_GATE_THRESHHOLDS):
 
             m_gateHighThreshhold->clear();
-            m_gateHighThreshhold->append(mousePos.x(), m_fullViewMinY);
-            m_gateHighThreshhold->append(mousePos.x(), m_fullViewMaxY);
+            m_gateHighThreshhold->append(m_mousePos.x(), m_fullViewMinY);
+            m_gateHighThreshhold->append(m_mousePos.x(), m_fullViewMaxY);
 
             break;
 
@@ -393,6 +397,9 @@ void ui::SpectrumChart::addGate(const ctrl::GatePen& gatePen, bool resizeAxis) {
             break;
         case ui::AxisXMode::CHANNELS:
             energyStepOfActivatedSpectrum = getModelSpectrums()->getEnergyStepOfActivatedSpectrum();
+            if (energyStepOfActivatedSpectrum <= 0.0){
+                return;
+            }
             energyStartOfActivatedSpectrum = getModelSpectrums()->getEnergyStartofActivatedSpectrum();
             minValX = (gatePen.gate.getEnergyLowThreshhold() - energyStartOfActivatedSpectrum) / energyStepOfActivatedSpectrum;
             maxValX = (gatePen.gate.getEnergyHighThreshhold() - energyStartOfActivatedSpectrum) / energyStepOfActivatedSpectrum;

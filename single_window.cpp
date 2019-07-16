@@ -52,6 +52,7 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     m_cBoxModeX->addItem(tr("Wave length, nm"));
     m_cBoxModeX->addItem(tr("Wave length, A"));
     connect(m_cBoxModeX, SIGNAL(activated(int)), m_tab, SLOT(slotSetXModeView(int)));
+    connect(m_cBoxModeX, SIGNAL(activated(int)), this, SLOT(slotUpdateViews()));
     connect(m_tab, SIGNAL(modeXChanged(int)), m_cBoxModeX, SLOT(setCurrentIndex(int)));
 
     m_cBoxModeY = new QComboBox;

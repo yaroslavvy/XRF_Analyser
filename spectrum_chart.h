@@ -6,10 +6,10 @@
 #include <QLineSeries>
 #include "spectrum_pen_struct.h"
 #include "spectrum_list_model.h"
-#include "spectrum_chart_axis_modes.h"
 #include "gate_pen.h"
 
 class QItemSelectionModel;
+class QLabel;
 
 namespace ctrl {
     class GatesTableModel;
@@ -21,6 +21,25 @@ namespace ui {
         SELECT_GATE_THRESHHOLDS,
         SEARCHING_ELEMENT_LINE
     };
+
+    enum AxisXMode{
+        ENERGY_KEV,
+        CHANNELS,
+        WAVE_LENGTH_NM,
+        WAVE_LENGTH_A
+    };
+
+    enum AxisYMode{
+        LINEAR,
+        LOG
+    };
+
+    const double COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM = 1.239842;
+    const double COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A = 12.39842;
+    const double MIN_POSSIBLE_WAVE_LENGTH_NM = 0.02478;
+    const double MIN_POSSIBLE_WAVE_LENGTH_A = 0.2478;
+    const double MAX_POSSIBLE_WAVE_LENGTH_NM = 2.4796;
+    const double MAX_POSSIBLE_WAVE_LENGTH_A = 24.796;
 
     class SpectrumChart : public QtCharts::QChart {
 
@@ -67,14 +86,9 @@ namespace ui {
         void controlAxisLimits(double maxIntensity, double minValX, double maxValX, bool resizeAxis = true);
 
         const double MIN_POSSIBLE_LOG_Y_AXIS_VALUE = 0.00001;//min value of the log axisY can not be ZERO or NEGATIVE
-        const double COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM = 1.239842;
-        const double COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A = 12.39842;
+
         const double COEF_LINEAR_Y_AXIS_EXTEND = 1.1;
         const double COEF_LOG_Y_AXIS_EXTEND = 100;
-        const double MIN_POSSIBLE_WAVE_LENGTH_NM = 0.02478;
-        const double MIN_POSSIBLE_WAVE_LENGTH_A = 0.2478;
-        const double MAX_POSSIBLE_WAVE_LENGTH_NM = 2.4796;
-        const double MAX_POSSIBLE_WAVE_LENGTH_A = 24.796;
 
         ctrl::SpectrumListModel* m_modelSpec;
         ctrl::GatesTableModel* m_modelGate;
@@ -91,7 +105,8 @@ namespace ui {
         double m_fullViewMinY;
         double m_fullViewMaxY;
 
-        QPointF mousePos;
+        QPointF m_mousePos;
+        QLabel* m_coordinatesLabel;
 
         QtCharts::QLineSeries* m_verticalLineCursor;
         QtCharts::QLineSeries* m_horizontalLineCursor;

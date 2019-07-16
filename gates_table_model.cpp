@@ -7,7 +7,8 @@
 #include "spectrum_algorithms.h"
 
 ctrl::GatesTableModel::GatesTableModel(QObject* parent)
-    : QAbstractTableModel (parent)
+    : QAbstractTableModel (parent),
+      m_xMode(ui::AxisXMode::ENERGY_KEV)
 {
 }
 
@@ -40,6 +41,8 @@ QVariant ctrl::GatesTableModel::data (const QModelIndex& index, int nRole) const
     if(!index.isValid()) {
         return QVariant();
     }
+    double energyStepSpectrum;
+    double energyStartSpectrum;
     switch (index.column()) {
         case (GATE_TABLE_COLUMN::GATE_NAME):
             switch (nRole) {
@@ -55,9 +58,37 @@ QVariant ctrl::GatesTableModel::data (const QModelIndex& index, int nRole) const
         case (GATE_TABLE_COLUMN::LOW_THRESHHOLD):
             switch (nRole) {
                 case (Qt::DisplayRole):
-                    return QVariant(m_gateList.at(index.row()).gate.getEnergyLowThreshhold());
+                    switch (m_xMode) {
+                        case (ui::AxisXMode::ENERGY_KEV):
+                            return QVariant(m_gateList.at(index.row()).gate.getEnergyLowThreshhold());
+                        case (ui::AxisXMode::CHANNELS):
+                            energyStepSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStepSpectrum_kev;
+                            if (energyStepSpectrum <= 0.0){
+                                return QVariant(0);
+                            }
+                            energyStartSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStartSpectrum_kev;
+                            return QVariant(spectrumAlgorithms::convertEnergyKeVToChannel(energyStartSpectrum, m_gateList.at(index.row()).gate.getEnergyLowThreshhold(), energyStepSpectrum, 0.0));
+                        case (ui::AxisXMode::WAVE_LENGTH_NM):
+                            return QVariant(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / m_gateList.at(index.row()).gate.getEnergyHighThreshhold());
+                        case (ui::AxisXMode::WAVE_LENGTH_A):
+                            return QVariant(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / m_gateList.at(index.row()).gate.getEnergyHighThreshhold());
+                    }
                 case (Qt::EditRole):
-                    return QVariant(m_gateList.at(index.row()).gate.getEnergyLowThreshhold());
+                    switch (m_xMode) {
+                        case (ui::AxisXMode::ENERGY_KEV):
+                            return QVariant(QString::number(m_gateList.at(index.row()).gate.getEnergyLowThreshhold()));
+                        case (ui::AxisXMode::CHANNELS):
+                            energyStepSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStepSpectrum_kev;
+                            if (energyStepSpectrum <= 0.0){
+                                return QVariant(0);
+                            }
+                            energyStartSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStartSpectrum_kev;
+                            return QVariant(QString::number(spectrumAlgorithms::convertEnergyKeVToChannel(energyStartSpectrum, m_gateList.at(index.row()).gate.getEnergyLowThreshhold(), energyStepSpectrum, 0.0)));
+                        case (ui::AxisXMode::WAVE_LENGTH_NM):
+                            return QVariant(QString::number(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / m_gateList.at(index.row()).gate.getEnergyHighThreshhold()));
+                        case (ui::AxisXMode::WAVE_LENGTH_A):
+                            return QVariant(QString::number(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / m_gateList.at(index.row()).gate.getEnergyHighThreshhold()));
+                    }
                 case (Qt::TextAlignmentRole):
                     return QVariant(Qt::AlignCenter);
                 default:
@@ -66,9 +97,37 @@ QVariant ctrl::GatesTableModel::data (const QModelIndex& index, int nRole) const
         case (GATE_TABLE_COLUMN::HIGH_THRESHHOLD):
             switch (nRole) {
                 case (Qt::DisplayRole):
-                    return QVariant(m_gateList.at(index.row()).gate.getEnergyHighThreshhold());
+                    switch (m_xMode) {
+                        case (ui::AxisXMode::ENERGY_KEV):
+                            return QVariant(m_gateList.at(index.row()).gate.getEnergyHighThreshhold());
+                        case (ui::AxisXMode::CHANNELS):
+                            energyStepSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStepSpectrum_kev;
+                            if (energyStepSpectrum <= 0.0){
+                                return QVariant(0);
+                            }
+                            energyStartSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStartSpectrum_kev;
+                            return QVariant(spectrumAlgorithms::convertEnergyKeVToChannel(energyStartSpectrum, m_gateList.at(index.row()).gate.getEnergyHighThreshhold(), energyStepSpectrum, 0.0));
+                        case (ui::AxisXMode::WAVE_LENGTH_NM):
+                            return QVariant(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / m_gateList.at(index.row()).gate.getEnergyLowThreshhold());
+                        case (ui::AxisXMode::WAVE_LENGTH_A):
+                            return QVariant(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / m_gateList.at(index.row()).gate.getEnergyLowThreshhold());
+                    }
                 case (Qt::EditRole):
-                    return QVariant(m_gateList.at(index.row()).gate.getEnergyHighThreshhold());
+                    switch (m_xMode) {
+                        case (ui::AxisXMode::ENERGY_KEV):
+                            return QVariant(QString::number(m_gateList.at(index.row()).gate.getEnergyHighThreshhold()));
+                        case (ui::AxisXMode::CHANNELS):
+                            energyStepSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStepSpectrum_kev;
+                            if (energyStepSpectrum <= 0.0){
+                                return QVariant(0);
+                            }
+                            energyStartSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStartSpectrum_kev;
+                            return QVariant(QString::number(spectrumAlgorithms::convertEnergyKeVToChannel(energyStartSpectrum, m_gateList.at(index.row()).gate.getEnergyHighThreshhold(), energyStepSpectrum, 0.0)));
+                        case (ui::AxisXMode::WAVE_LENGTH_NM):
+                            return QVariant(QString::number(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / m_gateList.at(index.row()).gate.getEnergyLowThreshhold()));
+                        case (ui::AxisXMode::WAVE_LENGTH_A):
+                            return QVariant(QString::number(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / m_gateList.at(index.row()).gate.getEnergyLowThreshhold()));
+                    }
                 case (Qt::TextAlignmentRole):
                     return QVariant(Qt::AlignCenter);
                 default:
@@ -77,8 +136,6 @@ QVariant ctrl::GatesTableModel::data (const QModelIndex& index, int nRole) const
         case (GATE_TABLE_COLUMN::FULL_INTEGRAL_INTENSITY):
             switch (nRole) {
                 case (Qt::DisplayRole):
-                    return QVariant(spectrumAlgorithms::findFullIntegralIntensity(m_activeSpectrum, m_gateList.at(index.row()).gate));
-                case (Qt::EditRole):
                     return QVariant(spectrumAlgorithms::findFullIntegralIntensity(m_activeSpectrum, m_gateList.at(index.row()).gate));
                 case (Qt::TextAlignmentRole):
                     return QVariant(Qt::AlignCenter);
@@ -104,10 +161,13 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
     }
     double doubleValue = value.value<double>();
     if(((nRole == GATE_TABLE_COLUMN::LOW_THRESHHOLD) || (nRole == GATE_TABLE_COLUMN::HIGH_THRESHHOLD)) && (doubleValue < 0)) {
-        doubleValue = 0;
+        doubleValue = 0.0;
     }
     GatePen gatePen;
+    double energyStepSpectrum;
+    double energyStartSpectrum;
     switch (index.column()) {
+
         case (GATE_TABLE_COLUMN::GATE_NAME):
             gatePen = m_gateList.at(index.row());
             gatePen.gate.setGateName(value.value<QString>());
@@ -115,29 +175,124 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
             emit dataChanged(index, index);
             emit updateGates(false);
             return true;
+
         case (GATE_TABLE_COLUMN::LOW_THRESHHOLD):
             gatePen = m_gateList.at(index.row());
 
-            if(doubleValue > data(this->index(index.row(), 2)).toDouble()) {
-                gatePen.gate.setEnergyThreshholds(data(this->index(index.row(), 2)).toDouble(), gatePen.gate.getEnergyHighThreshhold());
+            if (doubleValue > data(this->index(index.row(), 2)).toDouble()) {
+                switch (m_xMode) {
+                    case (ui::AxisXMode::ENERGY_KEV):
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyHighThreshhold(), gatePen.gate.getEnergyHighThreshhold());
+                        break;
+
+                    case (ui::AxisXMode::CHANNELS):
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyHighThreshhold(), gatePen.gate.getEnergyHighThreshhold());
+                        break;
+
+                    case (ui::AxisXMode::WAVE_LENGTH_NM):
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), gatePen.gate.getEnergyLowThreshhold());
+                        break;
+
+                    case (ui::AxisXMode::WAVE_LENGTH_A):
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), gatePen.gate.getEnergyLowThreshhold());
+                        break;
+                }
             }
             else {
-                gatePen.gate.setEnergyThreshholds(doubleValue, gatePen.gate.getEnergyHighThreshhold());
+                switch (m_xMode) {
+                    case (ui::AxisXMode::ENERGY_KEV):
+                        gatePen.gate.setEnergyThreshholds(doubleValue, gatePen.gate.getEnergyHighThreshhold());
+                        break;
+
+                    case (ui::AxisXMode::CHANNELS):
+                        energyStepSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStepSpectrum_kev;
+                        if (energyStepSpectrum <= 0.0){
+                            break;
+                        }
+                        energyStartSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStartSpectrum_kev;
+                        gatePen.gate.setEnergyThreshholds(spectrumAlgorithms::convertChannelToEnergyKeV(energyStartSpectrum, doubleValue, energyStepSpectrum), gatePen.gate.getEnergyHighThreshhold());
+                        break;
+
+                    case (ui::AxisXMode::WAVE_LENGTH_NM):
+                        if ((doubleValue <= ui::MAX_POSSIBLE_WAVE_LENGTH_NM) && (doubleValue >= ui::MIN_POSSIBLE_WAVE_LENGTH_NM)) {
+                            gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / doubleValue);
+                        }
+                        else {
+                            gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), gatePen.gate.getEnergyHighThreshhold());
+                        }
+                        break;
+
+                    case (ui::AxisXMode::WAVE_LENGTH_A):
+                        if ((doubleValue <= ui::MAX_POSSIBLE_WAVE_LENGTH_A) && (doubleValue >= ui::MIN_POSSIBLE_WAVE_LENGTH_A)) {
+                            gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / doubleValue);
+                        }
+                        else {
+                            gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), gatePen.gate.getEnergyHighThreshhold());
+                        }
+                        break;
+                }
             }
 
             m_gateList.replace(index.row(), gatePen);
-            qDebug() << "Low setData: " << doubleValue;
             emit dataChanged(index, index);
             emit updateGates(false);
             return true;
+
         case (GATE_TABLE_COLUMN::HIGH_THRESHHOLD):
             gatePen = m_gateList.at(index.row());
 
-            if(doubleValue < data(this->index(index.row(), 1)).toDouble()) {
-                gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), data(this->index(index.row(), 1)).toDouble());
+            if (doubleValue < data(this->index(index.row(), 1)).toDouble()) {
+                switch (m_xMode) {
+                    case (ui::AxisXMode::ENERGY_KEV):
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), gatePen.gate.getEnergyLowThreshhold());
+                        break;
+
+                    case (ui::AxisXMode::CHANNELS):
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), gatePen.gate.getEnergyLowThreshhold());
+                        break;
+
+                    case (ui::AxisXMode::WAVE_LENGTH_NM):
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyHighThreshhold(), gatePen.gate.getEnergyHighThreshhold());
+                        break;
+
+                    case (ui::AxisXMode::WAVE_LENGTH_A):
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyHighThreshhold(), gatePen.gate.getEnergyHighThreshhold());
+                        break;
+                }
             }
             else {
-                gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), doubleValue);
+                switch (m_xMode) {
+                    case (ui::AxisXMode::ENERGY_KEV):
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), doubleValue);
+                        break;
+
+                    case (ui::AxisXMode::CHANNELS):
+                        energyStepSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStepSpectrum_kev;
+                        if (energyStepSpectrum <= 0.0){
+                            break;
+                        }
+                        energyStartSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStartSpectrum_kev;
+                        gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), spectrumAlgorithms::convertChannelToEnergyKeV(energyStartSpectrum, doubleValue, energyStepSpectrum));
+                        break;
+
+                    case (ui::AxisXMode::WAVE_LENGTH_NM):
+                        if ((doubleValue <= ui::MAX_POSSIBLE_WAVE_LENGTH_NM) && (doubleValue >= ui::MIN_POSSIBLE_WAVE_LENGTH_NM)) {
+                            gatePen.gate.setEnergyThreshholds(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / doubleValue, gatePen.gate.getEnergyHighThreshhold());
+                        }
+                        else {
+                            gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), gatePen.gate.getEnergyHighThreshhold());
+                        }
+                        break;
+
+                    case (ui::AxisXMode::WAVE_LENGTH_A):
+                        if ((doubleValue <= ui::MAX_POSSIBLE_WAVE_LENGTH_A) && (doubleValue >= ui::MIN_POSSIBLE_WAVE_LENGTH_A)) {
+                            gatePen.gate.setEnergyThreshholds(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / doubleValue, gatePen.gate.getEnergyHighThreshhold());
+                        }
+                        else {
+                            gatePen.gate.setEnergyThreshholds(gatePen.gate.getEnergyLowThreshhold(), gatePen.gate.getEnergyHighThreshhold());
+                        }
+                        break;
+                }
             }
 
             m_gateList.replace(index.row(), gatePen);
@@ -145,6 +300,7 @@ bool ctrl::GatesTableModel::setData(const QModelIndex& index, const QVariant& va
             emit dataChanged(index, index);
             emit updateGates(false);
             return true;
+
         default:
             return false;
     }
@@ -158,11 +314,31 @@ QVariant ctrl::GatesTableModel::headerData(int section, Qt::Orientation orientat
         case (Qt::Horizontal):
             switch (section) {
                 case(GATE_TABLE_COLUMN::GATE_NAME):
-                    return QVariant("Gate name");
+                    return QVariant("Gate");
                 case(GATE_TABLE_COLUMN::LOW_THRESHHOLD):
-                    return QVariant("Left limit");
+                    switch (m_xMode) {
+                        case(ui::AxisXMode::ENERGY_KEV):
+                            return QVariant("Left, KeV");
+                        case(ui::AxisXMode::CHANNELS):
+                            return QVariant("Left, ch");
+                        case(ui::AxisXMode::WAVE_LENGTH_NM):
+                            return QVariant("Left, nm");
+                        case(ui::AxisXMode::WAVE_LENGTH_A):
+                            return QVariant("Left, A");
+                    }
+
                 case(GATE_TABLE_COLUMN::HIGH_THRESHHOLD):
-                    return QVariant("Right limit");
+                    switch (m_xMode) {
+                        case(ui::AxisXMode::ENERGY_KEV):
+                            return QVariant("Right, KeV");
+                        case(ui::AxisXMode::CHANNELS):
+                            return QVariant("Right, ch");
+                        case(ui::AxisXMode::WAVE_LENGTH_NM):
+                            return QVariant("Right, nm");
+                        case(ui::AxisXMode::WAVE_LENGTH_A):
+                            return QVariant("Right, A");
+                    }
+
                 case(GATE_TABLE_COLUMN::FULL_INTEGRAL_INTENSITY):
                     return QVariant("Intensity");
                 default:
@@ -187,8 +363,33 @@ void ctrl::GatesTableModel::setActivatedSpectrum(const ctrl::SpectrumSPM spectru
 void ctrl::GatesTableModel::setSelectedGateThreshholds(double gateLowThreshhold, double gateHighThreshhold, int selectedRow) {
     GatePen gatePen;
     gatePen = m_gateList.at(selectedRow);
-    gatePen.gate.setEnergyThreshholds(gateLowThreshhold, gateHighThreshhold);
-    qDebug() << "High setSelectedGateThreshholds: " << gateLowThreshhold << " " << gateHighThreshhold;
+    double energyStepSpectrum;
+    double energyStartSpectrum;
+    switch (m_xMode) {
+        case (ui::AxisXMode::ENERGY_KEV):
+            gatePen.gate.setEnergyThreshholds(gateLowThreshhold, gateHighThreshhold);
+            break;
+        case (ui::AxisXMode::CHANNELS):
+            energyStepSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStepSpectrum_kev;
+            if (energyStepSpectrum <= 0.0){
+                break;
+            }
+            energyStartSpectrum = m_activeSpectrum.getSpectrumAttributes().energyStartSpectrum_kev;
+            gatePen.gate.setEnergyThreshholds(spectrumAlgorithms::convertChannelToEnergyKeV(energyStartSpectrum, gateLowThreshhold, energyStepSpectrum), spectrumAlgorithms::convertChannelToEnergyKeV(energyStartSpectrum, gateHighThreshhold, energyStepSpectrum));
+            break;
+        case (ui::AxisXMode::WAVE_LENGTH_NM):
+            gatePen.gate.setEnergyThreshholds(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / gateHighThreshhold, ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_NM / gateLowThreshhold);
+            break;
+        case (ui::AxisXMode::WAVE_LENGTH_A):
+            gatePen.gate.setEnergyThreshholds(ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / gateHighThreshhold, ui::COEF_CONVERT_ENERGY_KEV_TO_WAVE_LENGTH_A / gateLowThreshhold);
+            break;
+    }
     m_gateList.replace(selectedRow, gatePen);
+    emit dataChanged(QModelIndex(), QModelIndex());
+}
+
+void ctrl::GatesTableModel::setAxisXMode(ui::AxisXMode mode) {
+    m_xMode = mode;
+
     emit dataChanged(QModelIndex(), QModelIndex());
 }

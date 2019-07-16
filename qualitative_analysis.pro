@@ -54,7 +54,6 @@ HEADERS += \
     main_window.h \
     single_window.h \
     spectrum_chart.h \
-    spectrum_chart_axis_modes.h \
     spectrum_list_model.h \
     spectrum_pen_struct.h \
     spectrum_spm.h \

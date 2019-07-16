@@ -6,6 +6,7 @@
 #include "gate.h"
 #include "gate_pen.h"
 #include "spectrum_spm.h"
+#include "spectrum_chart.h"
 
 class QItemSelection;
 
@@ -37,6 +38,7 @@ namespace ctrl {
         Qt::ItemFlags flags(const QModelIndex &index) const override;
         void setActivatedSpectrum(const ctrl::SpectrumSPM);
         void setSelectedGateThreshholds(double gateLowThreshhold, double gateHighThreshhold, int selectedRow);
+        void setAxisXMode(ui::AxisXMode mode);
 
     signals:
         void updateGates(bool resizeAxis);
@@ -45,6 +47,8 @@ namespace ctrl {
         QList<GatePen> m_gateList;
 
         ctrl::SpectrumSPM m_activeSpectrum;
+
+        ui::AxisXMode m_xMode;
 
         const int DEFAULT_WIDTH_LINE_FOR_PAINTING_GATES = 1;
     };

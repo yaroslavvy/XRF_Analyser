@@ -3,7 +3,6 @@
 
 #include <QTabWidget>
 #include "work_area_view.h"
-#include "spectrum_chart_axis_modes.h"
 
 namespace ui {
     class TabSpecWindow : public QTabWidget {

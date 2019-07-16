@@ -112,10 +112,10 @@ void ui::GatesTableView::setModel(QAbstractItemModel* model) {
         QFont newFont(font());
         newFont.setPointSize(7);
         setFont(newFont);
-        setColumnWidth(0, 75);
-        setColumnWidth(1, 65);
-        setColumnWidth(2, 65);
-        setColumnWidth(3, 65);
+        setColumnWidth(0, 55);
+        setColumnWidth(1, 70);
+        setColumnWidth(2, 70);
+        setColumnWidth(3, 70);
     }
 }
 

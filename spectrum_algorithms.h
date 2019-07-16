@@ -12,7 +12,9 @@ namespace spectrumAlgorithms {
     double findFullIntegralIntensity(const ctrl::SpectrumSPM &spectrum, const ctrl::Gate &gate);
     double findFullIntegralIntensity2(const ctrl::SpectrumSPM &spectrum, const ctrl::Gate &gate);
     double convertChannelToEnergyKeV(double energyStartSpectrum, int channel, double energyStep);
-    int convertEnergyKeVToChannel(double energyStartSpectrum, double energyForConvert, double energyStep);
+    double convertChannelToEnergyKeV(double energyStartSpectrum, double channel, double energyStep);
+    int convertEnergyKeVToChannel(double energyStartSpectrum, double energyForConvert, double energyStep, int);
+    double convertEnergyKeVToChannel(double energyStartSpectrum, double energyForConvert, double energyStep, double);
     double findAreaUnderLineFunctionFromLowToHighLimits(double topLeftX, double topLeftY, double topRightX, double topRightY, double lowLimit, double highLimit);
     double findfindAreaUnderPolyLine(QVector<QPair<double, double>> &pointsOfPolyLine); //QVector<QPair<double x, double y>>
     double findEnergyFromChannelMidPoint(double energyStartSpectrum, int channel, double energyStep);
