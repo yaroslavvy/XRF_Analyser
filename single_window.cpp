@@ -135,8 +135,28 @@ ui::SingleWindow::SingleWindow(QWidget *pwgt)
     QGroupBox* spectrumListGroupBox = new QGroupBox;
     spectrumListGroupBox->setLayout(vbLayoutSpectrumListView);
 
+    QAction* buttonAddGate = new QAction(tr("Add Gate"), nullptr);
+    buttonAddGate->setText(tr("Add &Gate"));
+    buttonAddGate->setShortcut(QKeySequence("CTRL+G"));
+    buttonAddGate->setToolTip(tr("Create a new energy gate at the list"));
+    buttonAddGate->setWhatsThis(tr("Create a new energy gate at the list"));
+    buttonAddGate->setIcon(QPixmap("resources/pictures/menuIcons/defaultStyle/addTab26.png"));
+    connect(buttonAddGate, SIGNAL(triggered()), this, SLOT(slotAddGate()));
+
+    QToolBar* ptbGate = new QToolBar(tr("Add Gate"));
+    ptbGate->addAction(buttonAddGate);
+    ptbGate->setOrientation(Qt::Horizontal);
+
+    QHBoxLayout* hbLayoutSubGatesForAddButtonAndLabel = new QHBoxLayout;
+    hbLayoutSubGatesForAddButtonAndLabel->addStretch(1);
+    hbLayoutSubGatesForAddButtonAndLabel->addWidget(ptbGate);
+    hbLayoutSubGatesForAddButtonAndLabel->addStretch(3);
+    hbLayoutSubGatesForAddButtonAndLabel->addWidget(gatesLabelView);
+    hbLayoutSubGatesForAddButtonAndLabel->addStretch(5);
+    hbLayoutSubGatesForAddButtonAndLabel->setMargin(0);
+
     QVBoxLayout* vbLayoutGatesListView = new QVBoxLayout;
-    vbLayoutGatesListView->addWidget(gatesLabelView);
+    vbLayoutGatesListView->addLayout(hbLayoutSubGatesForAddButtonAndLabel);
     vbLayoutGatesListView->addWidget(m_tblViewGates);
     vbLayoutGatesListView->setMargin(6);
 
@@ -297,6 +317,15 @@ void ui::SingleWindow::slotRemoveTab() {
     else {
         m_tab->removeTab(m_tab->currentIndex());
     }
+}
+
+void ui::SingleWindow::slotAddGate() {
+    ctrl::Gate gate;
+    if(m_tab->count() == 0) {
+        slotAddTab();
+    }
+    m_tab->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates()->addGate(gate);
+    slotUpdateViews();
 }
 
 void ui::SingleWindow::slotUpdateViews(){

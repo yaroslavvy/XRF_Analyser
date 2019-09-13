@@ -35,7 +35,9 @@ namespace ui {
         void slotSaveAs();
         void slotAddTab();
         void slotRemoveTab();
+        void slotAddGate();
         void slotUpdateViews();
+
     };
 }
 
