@@ -244,26 +244,23 @@ void ui::GatesTableView::dropEvent (QDropEvent *event) {
         return;
     }
 
-    if (event->proposedAction() == Qt::MoveAction) {
+    if ((event->proposedAction() == Qt::MoveAction) || (event->proposedAction() == Qt::CopyAction)) {
         event->acceptProposedAction();
-    } else if (event->proposedAction() == Qt::CopyAction) {
-        event->acceptProposedAction();
-    } else {
+    }
+    else {
         return;
     }
 
     const ctrl::GateTableMimeData* gateTableMimeData = dynamic_cast<const ctrl::GateTableMimeData*>(event->mimeData());
-    if(gateTableMimeData != nullptr){
+    if(gateTableMimeData){
         QList<ctrl::Gate> gateList(gateTableMimeData->getGateList());
         for(auto &gate : gateList){
             thisGatesTableModel->addGate(gate);
         }
     }
-    QItemSelectionModel* itemSelectionModel = selectionModel();
     setModel(nullptr);
     setModel(thisGatesTableModel);
-    setSelectionModel(itemSelectionModel);
-
+    setSelectionModel(selectionModel());
 
     MainWindow* mainWindow = srvcSpec::getMainWindow(this);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
