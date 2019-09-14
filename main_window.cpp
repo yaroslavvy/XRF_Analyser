@@ -25,7 +25,7 @@ ui::MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
 }
 
-void ui::MainWindow::initialize() {
+void ui::MainWindow::initMainWindow() {
     const QString pathIconMenuDefaultStyle("resources/pictures/menuIcons/defaultStyle/");
     m_actNew = new QAction(tr("New Window"), nullptr);
     m_actNew->setText(tr("&New Window"));

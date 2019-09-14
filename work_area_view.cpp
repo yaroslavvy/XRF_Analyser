@@ -15,6 +15,10 @@
 #include "spectrum_list_view.h"
 #include "gate_table_mime_data.h"
 #include "gates_table_view.h"
+#include "gates_table_model.h"
+#include "tab_spec_window.h"
+#include "QMdiArea"
+#include "QMdiSubWindow"
 
 ui::WorkAreaView::WorkAreaView(QWidget* parent)
     : QtCharts::QChartView (parent),
@@ -187,17 +191,16 @@ void ui::WorkAreaView::dragMoveEvent (QDragMoveEvent *event) {
 
 void ui::WorkAreaView::dropEvent (QDropEvent *event) {
     if (event->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType())) {
-        const ctrl::SpectrumListModel* sourceSpectrumListModel = qobject_cast<const ctrl::SpectrumListModel*>(ui::SpectrumListView::getSourceSpectrumListModel());
-        ctrl::SpectrumListModel* thisSpectrumListModel = qobject_cast<ctrl::SpectrumListModel*>(getSpectrumChart()->getModelSpectrums());
+        const ctrl::SpectrumListModel* sourceSpectrumListModel = ui::SpectrumListView::getSourceSpectrumListModel();
+        ctrl::SpectrumListModel* thisSpectrumListModel = getSpectrumChart()->getModelSpectrums();
         if (sourceSpectrumListModel == thisSpectrumListModel) {
             return;
         }
 
-        if (event->proposedAction() == Qt::MoveAction) {
-                event->acceptProposedAction();
-        } else if (event->proposedAction() == Qt::CopyAction) {
+        if ((event->proposedAction() == Qt::MoveAction) || (event->proposedAction() == Qt::CopyAction)) {
             event->acceptProposedAction();
-        } else {
+        }
+        else {
             return;
         }
 
@@ -210,21 +213,41 @@ void ui::WorkAreaView::dropEvent (QDropEvent *event) {
         }
     }
 
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
+
     if (event->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType())) {
-        //TODO: make drop implementation
+        const ctrl::GatesTableModel* sourceGatesTableModel = ui::GatesTableView::getSourceGateTableModel();
+        ctrl::GatesTableModel* thisGatesTableModel = getSpectrumChart()->getModelGates();
+
+        if(sourceGatesTableModel == thisGatesTableModel) {
+            return;
+        }
+
+        if ((event->proposedAction() == Qt::MoveAction) || (event->proposedAction() == Qt::CopyAction)) {
+            event->acceptProposedAction();
+        }
+        else {
+            return;
+        }
+
+        const ctrl::GateTableMimeData* gateTableMimeData = dynamic_cast<const ctrl::GateTableMimeData*>(event->mimeData());
+        QList<ctrl::Gate> gateList(gateTableMimeData->getGateList());
+        for(auto &gate : gateList){
+            thisGatesTableModel->addGate(gate);
+        }
+        qobject_cast<SingleWindow*>(qobject_cast<QMdiArea*>(mainWindow->centralWidget())->activeSubWindow()->widget())->slotUpdateViews();
     }
 
-    bool chartIsEmpty = (getSpectrumChart()->getModelSpectrums()->rowCount() == 0);
-    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
+    bool chartIsEmpty = (getSpectrumChart()->getModelSpectrums()->rowCount() == 0 && getSpectrumChart()->getModelGates()->rowCount() == 0);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SHOW_HIDE_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_PRESENTATION_SETTINGS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::ITEM_INFORMATION, false);
-    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, !chartIsEmpty);//TODO: also it is needed to add modelGates
-    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, !chartIsEmpty);//TODO: also it is needed to add modelGates
-    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
+    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DELETE_ITEMS, !chartIsEmpty);
+    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::COPY_ITEMS, !chartIsEmpty);
+    mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, (QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType())) || (QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType())));
 }
 
 void ui::WorkAreaView::focusInEvent(QFocusEvent *event) {

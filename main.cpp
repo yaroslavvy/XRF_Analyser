@@ -10,7 +10,7 @@ int main(int argc, char **argv)
     splashScreen.show();
 
     ui::MainWindow::getInstance();//the first: creating object and initialization of static ui::MainWindow instance
-    ui::MainWindow::getInstance()->initialize();//the second: using this function instead of constructor, because recursive call of ui::MainWindow::getInstance() can be possible, while static ui::MainWindow instance is not creating in constructor
+    ui::MainWindow::getInstance()->initMainWindow();//the second: using this function instead of constructor, because recursive call of ui::MainWindow::getInstance() can be possible, while static ui::MainWindow instance is not creating in constructor
     splashScreen.finish(ui::MainWindow::getInstance());
     ui::MainWindow::getInstance()->showMaximized();
 

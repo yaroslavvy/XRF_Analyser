@@ -36,9 +36,8 @@ void ui::TabBarSpecWindow::dragMoveEvent (QDragMoveEvent *event) {
 }
 
 void ui::TabBarSpecWindow::dropEvent (QDropEvent *event) {
-    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
-    const ctrl::SpectrumListMimeData* spectrumListMimeData = dynamic_cast<const ctrl::SpectrumListMimeData*>(event->mimeData());
-    if(spectrumListMimeData){
+    if(event->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType())){
+        const ctrl::SpectrumListMimeData* spectrumListMimeData = dynamic_cast<const ctrl::SpectrumListMimeData*>(event->mimeData());
         const ctrl::SpectrumListModel* sourceSpectrumListModel = ui::SpectrumListView::getSourceSpectrumListModel();
         ui::TabSpecWindow* thisTabSpecWindow = qobject_cast<ui::TabSpecWindow*>(parentWidget());
         ctrl::SpectrumListModel* thisSpectrumListModel = thisTabSpecWindow->getCurrentWorkAreaView()->getSpectrumChart()->getModelSpectrums();
@@ -59,8 +58,9 @@ void ui::TabBarSpecWindow::dropEvent (QDropEvent *event) {
         }
     }
 
-    const ctrl::GateTableMimeData* gateTableMimeData = dynamic_cast<const ctrl::GateTableMimeData*>(event->mimeData());
-    if(gateTableMimeData){
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
+    if(event->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType())){
+        const ctrl::GateTableMimeData* gateTableMimeData = dynamic_cast<const ctrl::GateTableMimeData*>(event->mimeData());
         const ctrl::GatesTableModel* sourceGatesTableModel = ui::GatesTableView::getSourceGateTableModel();
         ui::TabSpecWindow* thisTabSpecWindow = qobject_cast<ui::TabSpecWindow*>(parentWidget());
         ctrl::GatesTableModel* thisGatesTableModel = thisTabSpecWindow->getCurrentWorkAreaView()->getSpectrumChart()->getModelGates();
@@ -83,8 +83,8 @@ void ui::TabBarSpecWindow::dropEvent (QDropEvent *event) {
         qobject_cast<SingleWindow*>(qobject_cast<QMdiArea*>(mainWindow->centralWidget())->activeSubWindow()->widget())->slotUpdateViews();
     }
 
-    bool chartIsEmpty = (qobject_cast<ui::TabSpecWindow*>(parentWidget())->getCurrentWorkAreaView()->getSpectrumChart()->getModelSpectrums()->rowCount() == 0);
-    mainWindow = ui::MainWindow::getInstance();
+    ui::SpectrumChart* spectrumChart = qobject_cast<ui::TabSpecWindow*>(parentWidget())->getCurrentWorkAreaView()->getSpectrumChart();
+    bool chartIsEmpty = (spectrumChart->getModelSpectrums()->rowCount() == 0 && spectrumChart->getModelGates()->rowCount() == 0);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);

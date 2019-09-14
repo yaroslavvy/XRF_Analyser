@@ -33,7 +33,7 @@ namespace ui {
         void setButtonEnable(MAIN_WINDOW_BUTTONS button, bool state);
 
         static ui::MainWindow* getInstance();
-        void initialize();
+        void initMainWindow();
 
     private:
         MainWindow(QWidget *parent = nullptr);
