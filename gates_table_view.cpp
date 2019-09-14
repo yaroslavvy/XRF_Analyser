@@ -142,7 +142,7 @@ void ui::GatesTableView::deleteItem() {
     setModel(gateModel);
     setSelectionModel(itemSelectionModel);
 
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     if(gateModel->rowCount() == 0) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
@@ -178,7 +178,7 @@ void ui::GatesTableView::copyItem() {
     ctrl::GateTableMimeData* gateTableMimeData = new ctrl::GateTableMimeData();
     gateTableMimeData->setGateList(gateList);
     clipboard->setMimeData(gateTableMimeData);
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
 }
 
@@ -207,7 +207,7 @@ void ui::GatesTableView::mousePressEvent(QMouseEvent *event) {
     if(event->button() == Qt::LeftButton){
         m_ptDragPos = event->pos();
     }
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
     if(model()->rowCount() != 0) {
         QModelIndex index = indexAt(event->pos());
@@ -262,7 +262,7 @@ void ui::GatesTableView::dropEvent (QDropEvent *event) {
     setModel(thisGatesTableModel);
     setSelectionModel(selectionModel());
 
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
     if(model()->rowCount() != 0) {
         bool isSelected = !selectedIndexes().isEmpty();
@@ -278,7 +278,7 @@ void ui::GatesTableView::dropEvent (QDropEvent *event) {
 }
 
 void ui::GatesTableView::focusInEvent(QFocusEvent *event) {
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::GateTableMimeData::mimeType()));
     if(model()->rowCount() != 0) {
         bool isSelected = !selectedIndexes().isEmpty();
@@ -295,7 +295,7 @@ void ui::GatesTableView::focusInEvent(QFocusEvent *event) {
 }
 
 void ui::GatesTableView::focusOutEvent(QFocusEvent *event) {
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);
@@ -336,7 +336,7 @@ void ui::GatesTableView::startDrag() {
         return;
     }
 
-    ui::MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);

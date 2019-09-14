@@ -154,7 +154,7 @@ void ui::SpectrumListView::deleteItem() {
     ctrl::SpectrumListModel* spectrumModel = qobject_cast<ctrl::SpectrumListModel*>(model());
     spectrumModel->removeSpectrum(indexListViewSelection);
     clearSelection();
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     if(spectrumModel->rowCount() == 0) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
@@ -184,7 +184,7 @@ void ui::SpectrumListView::copyItem() {
     ctrl::SpectrumListMimeData* spectrumListMimeData = new ctrl::SpectrumListMimeData();
     spectrumListMimeData->setSpectrumList(spectrumList);
     clipboard->setMimeData(spectrumListMimeData);
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
 }
 
@@ -215,7 +215,7 @@ void ui::SpectrumListView::mousePressEvent(QMouseEvent *event) {
     if(event->button() == Qt::LeftButton){
         m_ptDragPos = event->pos();
     }
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
     if(model()->rowCount() != 0) {
         QModelIndex index = indexAt(event->pos());
@@ -267,7 +267,7 @@ void ui::SpectrumListView::dropEvent (QDropEvent *event) {
             thisSpectrumListModel->addSpectrum(spectrum);
         }
     }
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
     if(model()->rowCount() != 0) {
         bool isSelected = !selectedIndexes().isEmpty();
@@ -283,7 +283,7 @@ void ui::SpectrumListView::dropEvent (QDropEvent *event) {
 }
 
 void ui::SpectrumListView::focusInEvent(QFocusEvent *event) {
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::PASTE_ITEMS, QApplication::clipboard()->mimeData()->hasFormat(ctrl::SpectrumListMimeData::mimeType()));
     if(model()->rowCount() != 0) {
         bool isSelected = !selectedIndexes().isEmpty();
@@ -300,7 +300,7 @@ void ui::SpectrumListView::focusInEvent(QFocusEvent *event) {
 }
 
 void ui::SpectrumListView::focusOutEvent(QFocusEvent *event) {
-    MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);
@@ -343,7 +343,7 @@ void ui::SpectrumListView::startDrag() {
         return;
     }
 
-    ui::MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);

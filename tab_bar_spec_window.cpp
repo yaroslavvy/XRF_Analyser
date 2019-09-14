@@ -36,7 +36,7 @@ void ui::TabBarSpecWindow::dragMoveEvent (QDragMoveEvent *event) {
 }
 
 void ui::TabBarSpecWindow::dropEvent (QDropEvent *event) {
-    ui::MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     const ctrl::SpectrumListMimeData* spectrumListMimeData = dynamic_cast<const ctrl::SpectrumListMimeData*>(event->mimeData());
     if(spectrumListMimeData){
         const ctrl::SpectrumListModel* sourceSpectrumListModel = ui::SpectrumListView::getSourceSpectrumListModel();
@@ -84,7 +84,7 @@ void ui::TabBarSpecWindow::dropEvent (QDropEvent *event) {
     }
 
     bool chartIsEmpty = (qobject_cast<ui::TabSpecWindow*>(parentWidget())->getCurrentWorkAreaView()->getSpectrumChart()->getModelSpectrums()->rowCount() == 0);
-    mainWindow = srvcSpec::getMainWindow(this);
+    mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);
@@ -98,7 +98,7 @@ void ui::TabBarSpecWindow::dropEvent (QDropEvent *event) {
 
 void ui::TabBarSpecWindow::mousePressEvent(QMouseEvent *event) {
     bool chartIsEmpty = qobject_cast<ui::TabSpecWindow*>(parentWidget())->getCurrentWorkAreaView()->getSpectrumChart()->getModelSpectrums()->rowCount() == 0;
-    ui::MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);

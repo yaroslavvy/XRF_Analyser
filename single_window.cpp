@@ -296,7 +296,7 @@ void ui::SingleWindow::slotAddTab() {
     view->setChart(chart);
     m_tab->addTab(view, tr("New Tab"));
     m_tab->setCurrentIndex(m_tab->count() - 1);
-    ui::MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     if (mainWindow != nullptr) {
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
         mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);

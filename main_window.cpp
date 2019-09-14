@@ -16,8 +16,16 @@
 #include "list_view_interface_item_tool_bar.h"
 #include "table_view_interface_item_tool_bar.h"
 
+ui::MainWindow* ui::MainWindow::getInstance() {
+    static ui::MainWindow  instance;
+    return &instance;
+}
+
 ui::MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
+}
+
+void ui::MainWindow::initialize() {
     const QString pathIconMenuDefaultStyle("resources/pictures/menuIcons/defaultStyle/");
     m_actNew = new QAction(tr("New Window"), nullptr);
     m_actNew->setText(tr("&New Window"));

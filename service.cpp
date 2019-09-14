@@ -39,16 +39,3 @@ const QPen srvcSpec::getPenForSpec(int orderNumberLoadedSpectrum, int penWidth) 
     };
     return QPen(QBrush(QColor(penColors[color][0], penColors[color][1], penColors[color][2])), penWidth);
 }
-
-ui::MainWindow* srvcSpec::getMainWindow(QWidget* widget) {
-    QWidget* parentWgt = widget->parentWidget();
-    if(parentWgt == nullptr){
-        return nullptr;
-    }
-    QWidget* previousParentWgt = nullptr;
-    while (parentWgt != nullptr) {
-        previousParentWgt = parentWgt;
-        parentWgt = parentWgt->parentWidget();
-    }
-    return qobject_cast<ui::MainWindow*>(previousParentWgt);
-}

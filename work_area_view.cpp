@@ -215,7 +215,7 @@ void ui::WorkAreaView::dropEvent (QDropEvent *event) {
     }
 
     bool chartIsEmpty = (getSpectrumChart()->getModelSpectrums()->rowCount() == 0);
-    ui::MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);
@@ -229,7 +229,7 @@ void ui::WorkAreaView::dropEvent (QDropEvent *event) {
 
 void ui::WorkAreaView::focusInEvent(QFocusEvent *event) {
     bool chartIsEmpty = (getSpectrumChart()->getModelSpectrums()->rowCount() == 0);
-    ui::MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);
@@ -243,7 +243,7 @@ void ui::WorkAreaView::focusInEvent(QFocusEvent *event) {
 }
 
 void ui::WorkAreaView::focusOutEvent(QFocusEvent *event) {
-    ui::MainWindow* mainWindow = srvcSpec::getMainWindow(this);
+    ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::INVERT_SELECTION, false);

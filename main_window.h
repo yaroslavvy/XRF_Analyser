@@ -30,10 +30,16 @@ namespace ui {
         Q_OBJECT
 
     public:
-        explicit MainWindow(QWidget *parent = nullptr);
         void setButtonEnable(MAIN_WINDOW_BUTTONS button, bool state);
 
+        static ui::MainWindow* getInstance();
+        void initialize();
+
     private:
+        MainWindow(QWidget *parent = nullptr);
+        MainWindow(const ui::MainWindow& mainWindow);
+        ui::MainWindow& operator=(ui::MainWindow& mainWindow);
+
         QMdiArea* m_pma;
         QMenu* m_pmnuWindows;
         QSignalMapper* m_psigMapper;
