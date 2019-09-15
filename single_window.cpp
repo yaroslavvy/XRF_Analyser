@@ -37,8 +37,11 @@
 #include "service.h"
 #include "main_window.h"
 
+
+
 ui::SingleWindow::SingleWindow(QWidget *pwgt)
-    : QWidget(pwgt) {
+    : QWidget(pwgt),
+      serialNumberTab(1) {
     QSplitter* hSpl = new QSplitter(Qt::Horizontal);
     QSplitter* vSpl1 = new QSplitter(Qt::Vertical);
     QSplitter* vSpl2 = new QSplitter(Qt::Vertical);
@@ -294,7 +297,8 @@ void ui::SingleWindow::slotAddTab() {
     m_tblViewGates->setRowHeight(0, 10);
 
     view->setChart(chart);
-    m_tab->addTab(view, tr("New Tab"));
+    QString nameForNewTab(tr("Tab № "));
+    m_tab->addTab(view, nameForNewTab + QString::number(serialNumberTab++));
     m_tab->setCurrentIndex(m_tab->count() - 1);
     ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     if (mainWindow != nullptr) {

@@ -251,7 +251,7 @@ void ui::WorkAreaView::dropEvent (QDropEvent *event) {
 }
 
 void ui::WorkAreaView::focusInEvent(QFocusEvent *event) {
-    bool chartIsEmpty = (getSpectrumChart()->getModelSpectrums()->rowCount() == 0);
+    bool chartIsEmpty = (getSpectrumChart()->getModelSpectrums()->rowCount() == 0 && getSpectrumChart()->getModelGates()->rowCount() == 0);
     ui::MainWindow* mainWindow = ui::MainWindow::getInstance();
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::SELECT_ALL_ITEMS, false);
     mainWindow->setButtonEnable(MAIN_WINDOW_BUTTONS::DESELECT_ALL_ITEMS, false);

@@ -29,6 +29,8 @@ namespace ui {
         QComboBox* m_cBoxModeX;
         QComboBox* m_cBoxModeY;
 
+        int serialNumberTab;
+
     public slots:
         void slotLoad();
         void slotSave();
